@@ -1,21 +1,7 @@
-# app/gov template
+# pypdm
 
-application and/ or governance/ documentation repo template
+Module and wrapper scripts for creating, manipulating and 
+performing consisancy checking of eclipse pvt and fluid 
+initialization tables.
 
-including kickstart of governance aspects
 
-* be able to use this repo as template for a new repo
-  * be useful to fork as well?
-* be able to copy-paste parts, use guides for own, existing application repos
-
-## focal points of governance, starting points of documentation
-
-### Architecture contract
-
-(or Architecture cont(r)act...)
-
-AC repo and info about process: https://github.com/equinor/architecturecontract
-
-[first draft of self assessment](doc/architecture-contract-first-draft.md) can be done here
-
-(old notes - https://git.equinor.com/sdstrh/team-delivery-governance-template )
