@@ -1,21 +1,13 @@
 import sys
-import ecl2df
-import pandas as pd
 
-case = sys.argv[1]
-
-def init_case(case_name):
-    eclfiles = ecl2df.EclFiles(case_name)
-    grid = ecl2df.grid.df(eclfiles)
-    pvt = ecl2df.pvt.df(eclfiles)
-
-    return eclfiles, grid, pvt
-
-
+from pypvt import field_fluid_description
 
 def main (case_name):
-    eclfiles, grid, pvt = init_case(case_name)
-    # TBD
+
+    fluid_description = field_fluid_description.field_fluid_description(ecl_case=case_name)
+
+    print(fluid_description.validate_description())
+
     # loop over all equil regions
     # check consistency in pvt
     pass
