@@ -1,0 +1,6 @@
+-- Dissolved gas-oil ratio versus depth
+RSVD
+ 1500 0.5
+ 4000 0.7  /
+ 1500 0.6
+ 4000 1.5  /

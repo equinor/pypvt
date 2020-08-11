@@ -36,7 +36,7 @@ class ElementFluidDescription:
         # self.pvtg_bg = None
         # self.pvtg_press = None
 
-    def init_from_ecl_pd(self, pvt_df, eql_df):
+    def init_from_ecl_df(self, pvt_df, eql_df):
         self.owc = eql_df[eql_df["EQLNUM"] == self.eqlnum]["OWC"].unique()[0]
         self.goc = eql_df[eql_df["EQLNUM"] == self.eqlnum]["GOC"].unique()[0]
 
