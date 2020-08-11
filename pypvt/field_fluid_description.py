@@ -40,7 +40,7 @@ class FieldFluidDescription:
                     )
                 else:
                     fluid = ElementFluidDescription(eqlnum=equilnr, pvtnum=pvtnr)
-                fluid.init_from_ecl_pd(pvt, equil)
+                fluid.init_from_ecl_df(pvt, equil)
                 self.fluid_descriptions.append(fluid)
 
     def validate_description(self):
