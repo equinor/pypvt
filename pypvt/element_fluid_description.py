@@ -2,6 +2,7 @@
 
 import numpy as np
 import pandas as pd
+import copy
 
 
 class ElementFluidDescription:
@@ -13,6 +14,7 @@ class ElementFluidDescription:
     def __init__(
         self, eqlnum=0, pvtnum=0, top_struct=0, bottom_struct=10000, ecl_case=None,
     ):
+        self.original = None
         self.pvtnum = pvtnum
         self.eqlnum = eqlnum
 
@@ -36,7 +38,11 @@ class ElementFluidDescription:
         # self.pvtg_bg = None
         # self.pvtg_press = None
 
-    def init_from_ecl_df(self, pvt_df, eql_df):
+    def init_equil_from_df(self, eql_df):
+        """
+        Set owc, goc, ref depth, ref press, from an ecl2df.equil_df object
+        """
+        print (eql_df.head())
         self.owc = eql_df[eql_df["EQLNUM"] == self.eqlnum]["OWC"].unique()[0]
         self.goc = eql_df[eql_df["EQLNUM"] == self.eqlnum]["GOC"].unique()[0]
 
@@ -47,19 +53,51 @@ class ElementFluidDescription:
             (eql_df["EQLNUM"] == self.eqlnum) & (eql_df["KEYWORD"] == "EQUIL")
         ]["PRESSURE"].unique()[0]
 
-        self.rsvd_rs = eql_df[
-            (eql_df["EQLNUM"] == self.eqlnum) & (eql_df["RS"].notnull())
+    def init_rsvd_from_df(self, rsvd_df):
+        """
+        Set rsvd, from an ecl2df.equil_df object
+        """
+        self.rsvd_rs = rsvd_df[
+            (rsvd_df["EQLNUM"] == self.eqlnum) & (rsvd_df["RS"].notnull())
         ]["RS"].to_numpy()
-        self.rsvd_depth = eql_df[
-            (eql_df["EQLNUM"] == self.eqlnum) & (eql_df["RS"].notnull())
+        self.rsvd_depth = rsvd_df[
+            (rsvd_df["EQLNUM"] == self.eqlnum) & (rsvd_df["RS"].notnull())
         ]["Z"].to_numpy()
 
-        self.rvvd_rv = eql_df[
-            (eql_df["EQLNUM"] == self.eqlnum) & (eql_df["RV"].notnull())
+    def init_rvvd_from_df(self, rvvd_df):
+        """
+        Set rvvd, from an ecl2df.equil_df object
+        """
+        self.rvvd_rv = rvvd_df[
+            (rvvd_df["EQLNUM"] == self.eqlnum) & (rvvd_df["RV"].notnull())
         ]["RV"].to_numpy()
-        self.rvvd_depth = eql_df[
-            (eql_df["EQLNUM"] == self.eqlnum) & (eql_df["RV"].notnull())
+        self.rvvd_depth = rvvd_df[
+            (rvvd_df["EQLNUM"] == self.eqlnum) & (rvvd_df["RV"].notnull())
         ]["Z"].to_numpy()
+
+    def init_pvt_from_df(self, pvt_df):
+        """
+        Set pvt, from an ecl2df.equil_df object
+        """
+        pass
+
+
+
+    def init_from_ecl_df(self, df_dict):
+
+        if 'EQUIL' in df_dict.keys():
+            self.init_equil_from_df(df_dict['EQUIL'])
+
+        if 'PVT' in df_dict.keys():
+            self.init_pvt_from_df(df_dict['PVT'])
+
+        if 'RSVD' in df_dict.keys():
+            self.init_rsvd_from_df(df_dict['RSVD'])
+
+        if 'RVVD' in df_dict.keys():
+            self.init_rvvd_from_df(df_dict['RVVD'])
+
+
 
     def validate_description(self):
         """
@@ -74,23 +112,24 @@ class ElementFluidDescription:
             print("PVTNUM not defined")
             return False
 
-        if not self.owc:
+        if self.owc is None:
             print("OWC not defined")
+            print (self.owc)
             return False
 
-        if not self.goc:
+        if self.goc is None:
             print("GOC not defined")
             return False
 
-        if not self.ref_depth:
+        if self.ref_depth is None:
             print("ref_depth not defined")
             return False
 
-        if not self.ref_press:
+        if self.ref_press is None:
             print("ref_press not defined")
             return False
 
-        if not self.top_struct:
+        if self.top_struct is None:
             print("top_struct not defined")
             return False
 
@@ -144,3 +183,13 @@ class ElementFluidDescription:
 
     def res_press_gradient():
         pass
+
+    def set_owc(self, owc):
+        new_self = copy.deepcopy(self)
+        new_self.owc = owc
+        return new_self
+
+    def set_goc(self, owc):
+        new_self = copy.deepcopy(self)
+        new_self.goc = goc
+        return new_self
