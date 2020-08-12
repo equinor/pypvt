@@ -2,7 +2,11 @@
 
 import numpy as np
 import pandas as pd
+import copy
+import sys
+
 import ecl2df
+
 
 from pypvt import ElementFluidDescription
 
@@ -14,34 +18,79 @@ class FieldFluidDescription:
 
     def parse_case(self, case_name):
         eclfiles = ecl2df.EclFiles(case_name)
-        grid = ecl2df.grid.df(eclfiles)
-        pvt = ecl2df.pvt.df(eclfiles)
-        equil = ecl2df.equil.df(eclfiles)
+        dataframes = {}
+        try:
+            dataframes['GRID'] = ecl2df.grid.df(eclfiles)
+        except:
+            dataframes['GRID'] = None
 
-        return eclfiles, grid, pvt, equil
+        try:
+            dataframes['PVT'] = ecl2df.pvt.df(eclfiles)
+        except:
+            dataframes['PVT'] = None
+
+        try:
+            dataframes['EQUIL'] = ecl2df.equil.df(eclfiles, keywords='EQUIL')
+        except:
+            dataframes['EQUIL'] = None
+
+        try:
+            dataframes['RSVD'] = ecl2df.equil.df(eclfiles, keywords='RSVD')
+        except:
+            dataframes['RSVD'] = None
+
+        try:
+            dataframes['RVVD'] = ecl2df.equil.df(eclfiles, keywords='RVVD')
+        except:
+            dataframes['RVVD'] = None
+
+
+        return eclfiles, dataframes
 
     def init_from_ecl(self, case):
-        eclfiles, grid, pvt, equil = self.parse_case(case)
+        eclfiles, eclkw_dict = self.parse_case(case)
+
+        grid = None
+        try:
+            grid = eclkw_dict['GRID']
+        except:
+            print ('No grid found, exiting')
+            sys.exit()
+
         top_struct = None
         bottom_struct = None
-        if grid is not None:
+        if eclkw_dict['GRID'] is not None:
             top_struct = grid["Z"].min()
             bottom_struct = grid["Z"].max()
 
+        pvt = None
+        try:
+            pvt = eclkw_dict['PVT']
+        except:
+            print ('No pvt found, exiting')
+            sys.exit()
+
+
+
+        fluid_index = 0
         for pvtnr in pvt["PVTNUM"].unique():
             print("Processing pvtnum: ", pvtnr)
             for equilnr in grid[grid["PVTNUM"] == pvtnr]["EQLNUM"].unique():
                 if grid is not None:
                     fluid = ElementFluidDescription(
-                        eqlnum=equilnr,
-                        pvtnum=pvtnr,
+                        eqlnum=int(equilnr),
+                        pvtnum=int(pvtnr),
                         top_struct=top_struct,
                         bottom_struct=bottom_struct,
                     )
                 else:
-                    fluid = ElementFluidDescription(eqlnum=equilnr, pvtnum=pvtnr)
-                fluid.init_from_ecl_df(pvt, equil)
+                    fluid = ElementFluidDescription(
+                        eqlnum=int(equilnr), pvtnum=int(pvtnr)
+                    )
+                fluid.init_from_ecl_df(eclkw_dict)
                 self.fluid_descriptions.append(fluid)
+                self.fluid_index[int(equilnr)] = fluid_index
+                fluid_index += 1
 
     def validate_description(self):
         """
@@ -57,8 +106,23 @@ class FieldFluidDescription:
 
         return True
 
+    def set_owc(self, eqlnum, owc):
+        new_self = copy.deepcopy(self)
+        new_self.fluid_descriptions[self.fluid_index[eqlnum]] = self.fluid_descriptions[
+            self.fluid_index[eqlnum]
+        ].set_owc(owc)
+        return new_self
+
+    def set_goc(self, eqlnum, goc):
+        new_self = copy.deepcopy(self)
+        new_self.fluid_descriptions[self.fluid_index[eqlnum]] = self.fluid_descriptions[
+            self.fluid_index[eqlnum]
+        ].set_goc(owc)
+        return new_self
+
     def __init__(self, ecl_case=None):
-        self.fluid_descriptions = list([])  # why the fuck is this necessary ??
+        self.fluid_descriptions = list([])
+        self.fluid_index = {}
         self.max_depth = (10000,)
         self.min_depth = (0,)
 
