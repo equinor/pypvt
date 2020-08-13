@@ -40,18 +40,20 @@ class ElementFluidDescription:
 
     def init_equil_from_df(self, eql_df):
         """
-        Set owc, goc, ref depth, ref press, from an ecl2df.equil_df object
+        Set owc, goc, ref depth, ref press, pcowc, pcgoc, initrs, initrv, accuracy from an ecl2df.equil_df object
         """
         print (eql_df.head())
         self.owc = eql_df[eql_df["EQLNUM"] == self.eqlnum]["OWC"].unique()[0]
         self.goc = eql_df[eql_df["EQLNUM"] == self.eqlnum]["GOC"].unique()[0]
+        self.pcowc = eql_df[eql_df["EQLNUM"] == self.eqlnum]["PCOWC"].unique()[0]
+        self.pcgoc = eql_df[eql_df["EQLNUM"] == self.eqlnum]["PCGOC"].unique()[0]
+        self.initrs = eql_df[eql_df["EQLNUM"] == self.eqlnum]["INITRS"].unique()[0]
+        self.initrv = eql_df[eql_df["EQLNUM"] == self.eqlnum]["INITRV"].unique()[0]
+        self.accuracy = eql_df[eql_df["EQLNUM"] == self.eqlnum]["ACCURACY"].unique()[0]
 
-        self.ref_depth = eql_df[
-            (eql_df["EQLNUM"] == self.eqlnum) & (eql_df["KEYWORD"] == "EQUIL")
-        ]["Z"].unique()[0]
-        self.ref_press = eql_df[
-            (eql_df["EQLNUM"] == self.eqlnum) & (eql_df["KEYWORD"] == "EQUIL")
-        ]["PRESSURE"].unique()[0]
+        self.ref_depth = eql_df[(eql_df["EQLNUM"] == self.eqlnum) & (eql_df["KEYWORD"] == "EQUIL")]["Z"].unique()[0]
+        self.ref_press = eql_df[(eql_df["EQLNUM"] == self.eqlnum) & (eql_df["KEYWORD"] == "EQUIL")]["PRESSURE"].unique()[0]
+
 
     def init_rsvd_from_df(self, rsvd_df):
         """
@@ -193,3 +195,55 @@ class ElementFluidDescription:
         new_self = copy.deepcopy(self)
         new_self.goc = goc
         return new_self
+
+    def get_df(self,keyword):
+        """
+        returns: pandas.Dataframe for specified keyword
+        """
+
+        df = None
+
+        if keyword == 'EQUIL':
+
+            df = pd.DataFrame(columns=['KEYWORD',
+                                       'EQLNUM',
+                                       'OWC',
+                                       'PCOWC',
+                                       'GOC',
+                                       'PCGOC',
+                                       'Z',
+                                       'PRESSURE',
+                                       'INITRS',
+                                       'INITRV',
+                                       'ACCURACY',
+                                   ])
+
+            df = df.append({'KEYWORD':'EQUIL',
+                            'EQLNUM':self.eqlnum,
+                            'OWC':self.owc,
+                            'PCOWC':self.pcowc,
+                            'GOC':self.goc,
+                            'PCGOC':self.pcgoc,
+                            'Z': self.ref_depth,
+                            'PRESSURE': self.ref_press,
+                            'INITRS':self.initrs,
+                            'INITRV':self.initrv,
+                            'ACCURACY':self.accuracy,
+                        }, ignore_index=True)
+
+            print ('Created EQUIL pd:')
+            print (df.head())
+
+        elif keyword == 'RSVD':
+            pass
+        elif keyword == 'RVVD':
+            pass
+        elif keyword == 'BPVD':
+            pass
+        elif keyword == 'DPVD':
+            pass
+        else:
+            print ('No supprt for keyword:', keyword)
+
+
+        return df

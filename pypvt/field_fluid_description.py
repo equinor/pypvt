@@ -128,3 +128,40 @@ class FieldFluidDescription:
 
         if ecl_case:
             self.init_from_ecl(ecl_case)
+
+
+    def get_df(self,keyword):
+        """
+        retrun: pandas.df according to the requested keyword
+        supported: equil, rsvd, rvvd, pbvd, pdvd, and the pvt related kws
+        """
+
+        dataframe = pd.DataFrame(columns=['PVTNUM', 'EQLNUM', 'OWC', 'GOC'])
+        for fluid in self.fluid_descriptions:
+            dataframe = pd.merge(left=dataframe, right=fluid.get_df(keyword), how ='outer')
+            print ('field get_df:')
+            print (dataframe.head())
+
+        return dataframe
+
+
+
+    def write_ecl_equil(self, keywords, filename):
+        """
+        Write kws equil, rsvd, rvvd, pbvd, pdvd to file
+        """
+
+        comments = {}
+        dframe = None
+
+        if 'EQUIL' in keywords:
+            if dframe is None:
+                dframe = self.get_df('EQUIL')
+            else:
+                dframe = pd.merge(left=dframe, right=self.get_df('EQUIL'), how='outer')
+            comments['EQUIL'] = "EQUIL kw created by pypvt"
+
+        print ('write_ecl_equil:')
+        print (dframe.head())
+        print (dframe)
+        ecl2df.equil.df2ecl_equil(dframe, comments)
