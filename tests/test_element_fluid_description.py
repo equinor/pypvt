@@ -1,14 +1,13 @@
 """Test element_fluid_description"""
 
-import os
-import sys
+import pathlib
+
 import numpy as np
-import pandas as pd
 import ecl2df
 
 from pypvt import ElementFluidDescription
 
-TESTDATA = os.path.join(os.path.dirname(__file__), "data")
+TESTDATA = pathlib.Path(__file__).resolve().parent / "README.md" / "data"
 
 
 def test_main():
@@ -16,37 +15,19 @@ def test_main():
 
 
 def test_init_from_ecl_df():
-    txt = open(
-        os.path.join(TESTDATA, "DATA"), "r", encoding="utf-8", errors="ignore"
-    ).read()
-    txt += open(
-        os.path.join(TESTDATA, "equil"), "r", encoding="utf-8", errors="ignore"
-    ).read()
-    equil_df = ecl2df.equil.df(txt, keywords="EQUIL")
+    data_txt = (TESTDATA / "DATA").read_text(encoding="utf-8", errors="ignore")
 
-    txt = open(
-        os.path.join(TESTDATA, "DATA"), "r", encoding="utf-8", errors="ignore"
-    ).read()
-    txt += open(
-        os.path.join(TESTDATA, "rsvd"), "r", encoding="utf-8", errors="ignore"
-    ).read()
-    rsvd_df = ecl2df.equil.df(txt, keywords="RSVD")
+    equil_txt = (TESTDATA / "equil").read_text(encoding="utf-8", errors="ignore")
+    equil_df = ecl2df.equil.df(data_txt + equil_txt, keywords="EQUIL")
 
-    txt = open(
-        os.path.join(TESTDATA, "DATA"), "r", encoding="utf-8", errors="ignore"
-    ).read()
-    txt += open(
-        os.path.join(TESTDATA, "rvvd"), "r", encoding="utf-8", errors="ignore"
-    ).read()
-    rvvd_df = ecl2df.equil.df(txt, keywords="RVVD")
+    rsvd_txt = (TESTDATA / "rsvd").read_text(encoding="utf-8", errors="ignore")
+    rsvd_df = ecl2df.equil.df(data_txt + rsvd_txt, keywords="RSVD")
 
-    txt = open(
-        os.path.join(TESTDATA, "DATA"), "r", encoding="utf-8", errors="ignore"
-    ).read()
-    txt += open(
-        os.path.join(TESTDATA, "pvt"), "r", encoding="utf-8", errors="ignore"
-    ).read()
-    pvt_df = ecl2df.pvt.df(txt)
+    rvvd_txt = (TESTDATA / "rvvd").read_text(encoding="utf-8", errors="ignore")
+    rvvd_df = ecl2df.equil.df(data_txt + rvvd_txt, keywords="RSVD")
+
+    pvt_txt = (TESTDATA / "pvt").read_text(encoding="utf-8", errors="ignore")
+    pvt_df = ecl2df.pvt.df(data_txt + pvt_txt)
 
     description = ElementFluidDescription(1, 1)
     description.init_from_ecl_df(

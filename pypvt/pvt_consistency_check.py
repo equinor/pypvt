@@ -12,7 +12,6 @@ def main(case_name):
     # print (fluid_description.fluid_descriptions[0].rvvd_depth)
     # loop over all equil regions
     # check consistency in pvt
-    pass
 
 
 if __name__ == "__main__":

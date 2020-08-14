@@ -1,0 +1,13 @@
+.eggs
+*.egg-info
+__pycache__
+node_modules
+venv
+.vscode
+.pytest_cache
+*.pyc
+.DS_Storels
+dist
+*~
+*.mypy_cache*
+build/
