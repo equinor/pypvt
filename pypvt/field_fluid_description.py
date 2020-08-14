@@ -19,62 +19,48 @@ class FieldFluidDescription:
     def parse_case(self, case_name):
         eclfiles = ecl2df.EclFiles(case_name)
         dataframes = {}
-        try:
-            dataframes['GRID'] = ecl2df.grid.df(eclfiles)
-        except:
-            dataframes['GRID'] = None
 
-        try:
-            dataframes['PVT'] = ecl2df.pvt.df(eclfiles)
-        except:
-            dataframes['PVT'] = None
-
-        try:
-            dataframes['EQUIL'] = ecl2df.equil.df(eclfiles, keywords='EQUIL')
-        except:
-            dataframes['EQUIL'] = None
-
-        try:
-            dataframes['RSVD'] = ecl2df.equil.df(eclfiles, keywords='RSVD')
-        except:
-            dataframes['RSVD'] = None
-
-        try:
-            dataframes['RVVD'] = ecl2df.equil.df(eclfiles, keywords='RVVD')
-        except:
-            dataframes['RVVD'] = None
-
+        dataframes['GRID'] = ecl2df.grid.df(eclfiles)
+        dataframes['PVT'] = ecl2df.pvt.df(eclfiles)
+        dataframes['EQUIL'] = ecl2df.equil.df(eclfiles, keywords='EQUIL')
+        dataframes['RSVD'] = ecl2df.equil.df(eclfiles, keywords='RSVD')
+        dataframes['RVVD'] = ecl2df.equil.df(eclfiles, keywords='RVVD')
 
         return eclfiles, dataframes
 
     def init_from_ecl(self, case):
-        eclfiles, eclkw_dict = self.parse_case(case)
+        eclfiles, ecldf_dict = self.parse_case(case)
 
         grid = None
         try:
-            grid = eclkw_dict['GRID']
+            grid = ecldf_dict['GRID']
         except:
             print ('No grid found, exiting')
             sys.exit()
 
         top_struct = None
         bottom_struct = None
-        if eclkw_dict['GRID'] is not None:
+        if ecldf_dict['GRID'] is not None:
             top_struct = grid["Z"].min()
             bottom_struct = grid["Z"].max()
 
         pvt = None
         try:
-            pvt = eclkw_dict['PVT']
+            pvt = ecldf_dict['PVT']
         except:
             print ('No pvt found, exiting')
             sys.exit()
 
+        equil = None
+        try:
+            equil = ecldf_dict['EQUIL']
+        except:
+            print ('No equil found, exiting')
+            sys.exit()
 
 
         fluid_index = 0
         for pvtnr in pvt["PVTNUM"].unique():
-            print("Processing pvtnum: ", pvtnr)
             for equilnr in grid[grid["PVTNUM"] == pvtnr]["EQLNUM"].unique():
                 if grid is not None:
                     fluid = ElementFluidDescription(
@@ -87,10 +73,22 @@ class FieldFluidDescription:
                     fluid = ElementFluidDescription(
                         eqlnum=int(equilnr), pvtnum=int(pvtnr)
                     )
-                fluid.init_from_ecl_df(eclkw_dict)
+                fluid.init_from_ecl_df(ecldf_dict)
                 self.fluid_descriptions.append(fluid)
                 self.fluid_index[int(equilnr)] = fluid_index
                 fluid_index += 1
+
+
+        fluid_index = 0
+        inactive_equils = list(set(equil['EQLNUM'].unique()) - set(self.fluid_index.keys()))
+        for equilnr in inactive_equils:
+            fluid = ElementFluidDescription(
+                eqlnum=int(equilnr), pvtnum=int(pvtnr)
+            )
+            fluid.init_from_ecl_df(ecldf_dict)
+            self.inactive_fluid_descriptions.append(fluid)
+            self.inacive_fluid_index[int(equilnr)] = fluid_index
+            fluid_index +=1
 
     def validate_description(self):
         """
@@ -122,7 +120,9 @@ class FieldFluidDescription:
 
     def __init__(self, ecl_case=None):
         self.fluid_descriptions = list([])
+        self.inactive_fluid_descriptions = list([])
         self.fluid_index = {}
+        self.inacive_fluid_index = {}
         self.max_depth = (10000,)
         self.min_depth = (0,)
 
@@ -136,17 +136,17 @@ class FieldFluidDescription:
         supported: equil, rsvd, rvvd, pbvd, pdvd, and the pvt related kws
         """
 
-        dataframe = pd.DataFrame(columns=['PVTNUM', 'EQLNUM', 'OWC', 'GOC'])
+        dataframe = pd.DataFrame(columns=['EQLNUM', 'OWC', 'GOC'])
         for fluid in self.fluid_descriptions:
             dataframe = pd.merge(left=dataframe, right=fluid.get_df(keyword), how ='outer')
-            print ('field get_df:')
-            print (dataframe.head())
+        for fluid in self.inactive_fluid_descriptions:
+            dataframe = pd.merge(left=dataframe, right=fluid.get_df(keyword), how ='outer')
 
         return dataframe
 
 
 
-    def write_ecl_equil(self, keywords, filename):
+    def write_equilkws(self, keywords, filename):
         """
         Write kws equil, rsvd, rvvd, pbvd, pdvd to file
         """
@@ -161,7 +161,4 @@ class FieldFluidDescription:
                 dframe = pd.merge(left=dframe, right=self.get_df('EQUIL'), how='outer')
             comments['EQUIL'] = "EQUIL kw created by pypvt"
 
-        print ('write_ecl_equil:')
-        print (dframe.head())
-        print (dframe)
-        ecl2df.equil.df2ecl_equil(dframe, comments)
+        ecl2df.equil.df2ecl(dframe, keywords=keywords, comments=comments, filename=filename)

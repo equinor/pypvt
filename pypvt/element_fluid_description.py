@@ -30,7 +30,7 @@ class ElementFluidDescription:
         self.rsvd_rs = None
         self.rsvd_depth = None
 
-        self.rvvd_rs = None
+        self.rvvd_rv = None
         self.rvvd_depth = None
 
         # self.pvto_o = None # 2D som ecl2df dataframe (trykk; mettet og umettet)
@@ -42,7 +42,7 @@ class ElementFluidDescription:
         """
         Set owc, goc, ref depth, ref press, pcowc, pcgoc, initrs, initrv, accuracy from an ecl2df.equil_df object
         """
-        print (eql_df.head())
+
         self.owc = eql_df[eql_df["EQLNUM"] == self.eqlnum]["OWC"].unique()[0]
         self.goc = eql_df[eql_df["EQLNUM"] == self.eqlnum]["GOC"].unique()[0]
         self.pcowc = eql_df[eql_df["EQLNUM"] == self.eqlnum]["PCOWC"].unique()[0]
@@ -84,21 +84,18 @@ class ElementFluidDescription:
         pass
 
 
-
     def init_from_ecl_df(self, df_dict):
-
-        if 'EQUIL' in df_dict.keys():
+        if 'PCGOC' in df_dict['EQUIL'].keys() :
             self.init_equil_from_df(df_dict['EQUIL'])
 
-        if 'PVT' in df_dict.keys():
+        if 'PVT' in df_dict['PVT'].keys():
             self.init_pvt_from_df(df_dict['PVT'])
 
-        if 'RSVD' in df_dict.keys():
+        if 'RSVD' in df_dict['RSVD'].keys():
             self.init_rsvd_from_df(df_dict['RSVD'])
 
-        if 'RVVD' in df_dict.keys():
+        if 'RVVD' in df_dict['RVVD'].keys():
             self.init_rvvd_from_df(df_dict['RVVD'])
-
 
 
     def validate_description(self):
@@ -231,8 +228,6 @@ class ElementFluidDescription:
                             'ACCURACY':self.accuracy,
                         }, ignore_index=True)
 
-            print ('Created EQUIL pd:')
-            print (df.head())
 
         elif keyword == 'RSVD':
             pass
