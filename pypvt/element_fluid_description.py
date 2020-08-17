@@ -9,6 +9,7 @@ import pandas as pd
 # pylint: disable=too-many-public-methods
 # pylint: disable=too-many-branches
 
+
 class ElementFluidDescription:
 
     """ A representation of black oil pvt and fluid contacts
