@@ -93,6 +93,29 @@ class ElementFluidDescription:
             (rvvd_df["EQLNUM"] == self.eqlnum) & (rvvd_df["RV"].notnull())
         ]["Z"].to_numpy()
 
+    def init_bpvd_from_df(self, bpvd_df):
+        """
+        Set bpvd, from an ecl2df.equil_df object
+        """
+        self.bpvd_rv = bpvd_df[
+            (bpvd_df["EQLNUM"] == self.eqlnum) & (bpvd_df["BP"].notnull())
+        ]["BP"].to_numpy()
+        self.bpvd_depth = bpvd_df[
+            (bpvd_df["EQLNUM"] == self.eqlnum) & (bpvd_df["BP"].notnull())
+        ]["Z"].to_numpy()
+
+    def init_dpvd_from_df(self, dpvd_df):
+        """
+        Set dpvd, from an ecl2df.equil_df object
+        """
+        self.dpvd_rv = dpvd_df[
+            (dpvd_df["EQLNUM"] == self.eqlnum) & (dpvd_df["DP"].notnull())
+        ]["DP"].to_numpy()
+        self.dpvd_depth = dpvd_df[
+            (dpvd_df["EQLNUM"] == self.eqlnum) & (dpvd_df["DP"].notnull())
+        ]["Z"].to_numpy()
+
+
     def init_pvt_from_df(self, pvt_df):
         """
         Set pvt, from an ecl2df.equil_df object
@@ -272,7 +295,7 @@ class ElementFluidDescription:
         elif keyword == "RVVD":
             df = pd.DataFrame(columns=["KEYWORD", "EQLNUM", "RV", "Z",])
 
-            for i in range(len(self.rvvd_rs)):
+            for i in range(len(self.rvvd_rv)):
                 df = df.append(
                     {
                         "KEYWORD": "RVVD",
@@ -286,7 +309,7 @@ class ElementFluidDescription:
         elif keyword == "BPVD":
             df = pd.DataFrame(columns=["KEYWORD", "EQLNUM", "BP", "Z",])
 
-            for i in range(len(self.bpvd_rs)):
+            for i in range(len(self.bpvd_bp)):
                 df = df.append(
                     {
                         "KEYWORD": "BPVD",
@@ -300,7 +323,7 @@ class ElementFluidDescription:
         elif keyword == "DPVD":
             df = pd.DataFrame(columns=["KEYWORD", "EQLNUM", "DP", "Z",])
 
-            for i in range(len(self.dpvd_rs)):
+            for i in range(len(self.dpvd_dp)):
                 df = df.append(
                     {
                         "KEYWORD": "DPVD",
