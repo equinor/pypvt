@@ -115,7 +115,6 @@ class ElementFluidDescription:
             (dpvd_df["EQLNUM"] == self.eqlnum) & (dpvd_df["DP"].notnull())
         ]["Z"].to_numpy()
 
-
     def init_pvt_from_df(self, pvt_df):
         """
         Set pvt, from an ecl2df.equil_df object
