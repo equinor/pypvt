@@ -82,7 +82,6 @@ class ElementFluidDescription:
             (rsvd_df["EQLNUM"] == self.eqlnum) & (rsvd_df["RS"].notnull())
         ]["Z"].to_numpy()
 
-
     def init_rvvd_from_df(self, rvvd_df):
         """
         Set rvvd, from an ecl2df.equil_df object
@@ -101,28 +100,23 @@ class ElementFluidDescription:
         raise NotImplementedError
 
     def init_from_ecl_df(self, df_dict):
-        if "EQUIL" in df_dict.keys():
-            if "PCGOC" in df_dict["EQUIL"].keys():
-                self.init_equil_from_df(df_dict["EQUIL"])
+        if "PCGOC" in df_dict["EQUIL"].keys():
+            self.init_equil_from_df(df_dict["EQUIL"])
 
-        if "PVT" in df_dict.keys():
-            if "PVT" in df_dict["PVT"].keys():
-                self.init_pvt_from_df(df_dict["PVT"])
+        if "PVT" in df_dict["PVT"].keys():
+            self.init_pvt_from_df(df_dict["PVT"])
 
-        if "RSVD" in df_dict.keys():
-            if "RS" in df_dict["RSVD"].keys():
-                self.init_rsvd_from_df(df_dict["RSVD"])
+        if "RS" in df_dict["RSVD"].keys():
+            self.init_rsvd_from_df(df_dict["RSVD"])
 
-        if "RVVD" in df_dict.keys():
-            if "RV" in df_dict["RVVD"].keys():
-                self.init_rvvd_from_df(df_dict["RVVD"])
+        if "RV" in df_dict["RVVD"].keys():
+            self.init_rvvd_from_df(df_dict["RVVD"])
 
-        if "BPVD" in df_dict.keys():
-            if "BP" in df_dict["BPVD"].keys():
-                self.init_bpvd_from_df(df_dict["BPVD"])
-        if "DPVD" in df_dict.keys():
-            if "DP" in df_dict["DPVD"].keys():
-                self.init_dpvd_from_df(df_dict["DPVD"])
+        if "BP" in df_dict["BPVD"].keys():
+            self.init_bpvd_from_df(df_dict["BPVD"])
+
+        if "DP" in df_dict["DPVD"].keys():
+            self.init_dpvd_from_df(df_dict["DPVD"])
 
     def validate_description(self):
         # pylint: disable=too-many-return-statements

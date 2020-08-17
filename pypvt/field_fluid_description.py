@@ -35,6 +35,8 @@ class FieldFluidDescription:
         dataframes["EQUIL"] = ecl2df.equil.df(eclfiles, keywords="EQUIL")
         dataframes["RSVD"] = ecl2df.equil.df(eclfiles, keywords="RSVD")
         dataframes["RVVD"] = ecl2df.equil.df(eclfiles, keywords="RVVD")
+        dataframes["BPVD"] = ecl2df.equil.df(eclfiles, keywords="BPVD")
+        dataframes["DPVD"] = ecl2df.equil.df(eclfiles, keywords="DPVD")
 
         return dataframes
 
