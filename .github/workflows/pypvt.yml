@@ -1,0 +1,63 @@
+name: pypvt
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  release:
+    types:
+      - published
+  schedule:
+    # Run CI daily and check that tests are working with latest dependencies
+    - cron:  '0 0 * * *'
+
+jobs:
+
+  pypvt:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.6', '3.7', '3.8']
+
+    steps:
+      - name: 📖 Checkout commit locally
+        uses: actions/checkout@v2
+
+      - name: 🐍 Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: 📦 Install pypvt with dependencies
+        run: |
+          pip install --upgrade pip
+          pip install .
+
+      - name: 📦 Install test dependencies
+        run: pip install .[tests]
+  
+      - name: 🧾 List all installed packages
+        run: pip freeze
+
+      - name: 🕵️ Check code style & linting
+        run: |
+          black --check pypvt tests setup.py
+          pylint pypvt tests setup.py
+          bandit -r -c ./bandit.yml pypvt tests setup.py
+          #mypy --package pypvt --ignore-missing-imports --disallow-untyped-defs --show-error-codes
+
+      #- name: 🤖 Run tests
+      #  run: pytest ./tests
+        
+      - name: 🚢 Build and deploy Python package
+        if: github.event_name == 'release' && matrix.python-version == '3.6'
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.pypi_pypvt_token }}
+        run: |
+          python -m pip install --upgrade setuptools wheel twine
+          python setup.py sdist bdist_wheel
+          twine upload dist/*

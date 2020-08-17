@@ -1,11 +1,13 @@
 """element_fluid_description module"""
 
-import numpy as np
-import pandas as pd
 import copy
 
+import pandas as pd
 
+
+# pylint: disable=too-many-instance-attributes
 class ElementFluidDescription:
+
     """ A representation of black oil pvt and fluid contacts
     for a fluid system, valid for one specific equil number
     in an eclipse simulation deck.
@@ -14,6 +16,9 @@ class ElementFluidDescription:
     def __init__(
         self, eqlnum=0, pvtnum=0, top_struct=0, bottom_struct=10000, ecl_case=None,
     ):
+
+        self.ecl_case = ecl_case
+
         self.original = None
         self.pvtnum = pvtnum
         self.eqlnum = eqlnum
@@ -38,9 +43,11 @@ class ElementFluidDescription:
         # self.pvtg_bg = None
         # self.pvtg_press = None
 
+    # pylint: disable=attribute-defined-outside-init
     def init_equil_from_df(self, eql_df):
         """
-        Set owc, goc, ref depth, ref press, pcowc, pcgoc, initrs, initrv, accuracy from an ecl2df.equil_df object
+        Set owc, goc, ref depth, ref press, pcowc, pcgoc, initrs, initrv, accuracy
+        from an ecl2df.equil_df object
         """
 
         self.owc = eql_df[eql_df["EQLNUM"] == self.eqlnum]["OWC"].unique()[0]
@@ -51,9 +58,12 @@ class ElementFluidDescription:
         self.initrv = eql_df[eql_df["EQLNUM"] == self.eqlnum]["INITRV"].unique()[0]
         self.accuracy = eql_df[eql_df["EQLNUM"] == self.eqlnum]["ACCURACY"].unique()[0]
 
-        self.ref_depth = eql_df[(eql_df["EQLNUM"] == self.eqlnum) & (eql_df["KEYWORD"] == "EQUIL")]["Z"].unique()[0]
-        self.ref_press = eql_df[(eql_df["EQLNUM"] == self.eqlnum) & (eql_df["KEYWORD"] == "EQUIL")]["PRESSURE"].unique()[0]
-
+        self.ref_depth = eql_df[
+            (eql_df["EQLNUM"] == self.eqlnum) & (eql_df["KEYWORD"] == "EQUIL")
+        ]["Z"].unique()[0]
+        self.ref_press = eql_df[
+            (eql_df["EQLNUM"] == self.eqlnum) & (eql_df["KEYWORD"] == "EQUIL")
+        ]["PRESSURE"].unique()[0]
 
     def init_rsvd_from_df(self, rsvd_df):
         """
@@ -81,24 +91,23 @@ class ElementFluidDescription:
         """
         Set pvt, from an ecl2df.equil_df object
         """
-        pass
-
+        raise NotImplementedError
 
     def init_from_ecl_df(self, df_dict):
-        if 'PCGOC' in df_dict['EQUIL'].keys() :
-            self.init_equil_from_df(df_dict['EQUIL'])
+        if "PCGOC" in df_dict["EQUIL"].keys():
+            self.init_equil_from_df(df_dict["EQUIL"])
 
-        if 'PVT' in df_dict['PVT'].keys():
-            self.init_pvt_from_df(df_dict['PVT'])
+        if "PVT" in df_dict["PVT"].keys():
+            self.init_pvt_from_df(df_dict["PVT"])
 
-        if 'RSVD' in df_dict['RSVD'].keys():
-            self.init_rsvd_from_df(df_dict['RSVD'])
+        if "RSVD" in df_dict["RSVD"].keys():
+            self.init_rsvd_from_df(df_dict["RSVD"])
 
-        if 'RVVD' in df_dict['RVVD'].keys():
-            self.init_rvvd_from_df(df_dict['RVVD'])
-
+        if "RVVD" in df_dict["RVVD"].keys():
+            self.init_rvvd_from_df(df_dict["RVVD"])
 
     def validate_description(self):
+        # pylint: disable=too-many-return-statements
         """
         check if the minimum requirements of a fluid description is fulfilled:
 
@@ -113,7 +122,7 @@ class ElementFluidDescription:
 
         if self.owc is None:
             print("OWC not defined")
-            print (self.owc)
+            print(self.owc)
             return False
 
         if self.goc is None:
@@ -153,92 +162,97 @@ class ElementFluidDescription:
 
         return True
 
-    def get_bo(press, rs):
-        pass
+    def get_bo(self, press, rs) -> float:
+        raise NotImplementedError
 
-    def get_rs(p_bub):
-        pass
+    def get_rs(self, p_bub) -> float:
+        raise NotImplementedError
 
-    def get_p_bub(rs):
-        pass
+    def get_p_bub(self, rs) -> float:
+        raise NotImplementedError
 
-    def get_visc_oil(press, rs):
-        pass
+    def get_visc_oil(self, press, rs) -> float:
+        raise NotImplementedError
 
-    def get_visc_gas(press, rs):
-        pass
+    def get_visc_gas(self, press, rs) -> float:
+        raise NotImplementedError
 
-    def get_bg(press, rv):
-        pass
+    def get_bg(self, press, rv) -> float:
+        raise NotImplementedError
 
-    def get_bv(p_dew):
-        pass
+    def get_bv(self, p_dew) -> float:
+        raise NotImplementedError
 
-    def calc_den_oil(press, bo, rs, rv):
-        pass
+    def calc_den_oil(self, press, bo, rs, rv) -> float:
+        raise NotImplementedError
 
-    def calc_den_gas(press, bg, rs, rv):
-        pass
+    def calc_den_gas(self, press, bg, rs, rv) -> float:
+        raise NotImplementedError
 
-    def res_press_gradient():
-        pass
+    def res_press_gradient(self) -> float:
+        raise NotImplementedError
 
     def set_owc(self, owc):
         new_self = copy.deepcopy(self)
         new_self.owc = owc
         return new_self
 
-    def set_goc(self, owc):
+    def set_goc(self, goc):
         new_self = copy.deepcopy(self)
         new_self.goc = goc
         return new_self
 
-    def get_df(self,keyword):
+    def get_df(self, keyword):
         """
         returns: pandas.Dataframe for specified keyword
         """
 
         df = None
 
-        if keyword == 'EQUIL':
+        if keyword == "EQUIL":
 
-            df = pd.DataFrame(columns=['KEYWORD',
-                                       'EQLNUM',
-                                       'OWC',
-                                       'PCOWC',
-                                       'GOC',
-                                       'PCGOC',
-                                       'Z',
-                                       'PRESSURE',
-                                       'INITRS',
-                                       'INITRV',
-                                       'ACCURACY',
-                                   ])
+            df = pd.DataFrame(
+                columns=[
+                    "KEYWORD",
+                    "EQLNUM",
+                    "OWC",
+                    "PCOWC",
+                    "GOC",
+                    "PCGOC",
+                    "Z",
+                    "PRESSURE",
+                    "INITRS",
+                    "INITRV",
+                    "ACCURACY",
+                ]
+            )
 
-            df = df.append({'KEYWORD':'EQUIL',
-                            'EQLNUM':self.eqlnum,
-                            'OWC':self.owc,
-                            'PCOWC':self.pcowc,
-                            'GOC':self.goc,
-                            'PCGOC':self.pcgoc,
-                            'Z': self.ref_depth,
-                            'PRESSURE': self.ref_press,
-                            'INITRS':self.initrs,
-                            'INITRV':self.initrv,
-                            'ACCURACY':self.accuracy,
-                        }, ignore_index=True)
+            df = df.append(
+                {
+                    "KEYWORD": "EQUIL",
+                    "EQLNUM": self.eqlnum,
+                    "OWC": self.owc,
+                    "PCOWC": self.pcowc,
+                    "GOC": self.goc,
+                    "PCGOC": self.pcgoc,
+                    "Z": self.ref_depth,
+                    "PRESSURE": self.ref_press,
+                    "INITRS": self.initrs,
+                    "INITRV": self.initrv,
+                    "ACCURACY": self.accuracy,
+                },
+                ignore_index=True,
+            )
 
-
-        elif keyword == 'RSVD':
+        elif keyword == "RSVD":
             pass
-        elif keyword == 'RVVD':
+        elif keyword == "RVVD":
             pass
-        elif keyword == 'BPVD':
+        elif keyword == "BPVD":
             pass
-        elif keyword == 'DPVD':
+        elif keyword == "DPVD":
             pass
         else:
-            print ('No supprt for keyword:', keyword)
-
+            print("No supprt for keyword:", keyword)
 
         return df
