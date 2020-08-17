@@ -38,6 +38,12 @@ class ElementFluidDescription:
         self.rvvd_rv = None
         self.rvvd_depth = None
 
+        self.bpvd_bp = None
+        self.bpvd_depth = None
+
+        self.dpvd_dp = None
+        self.dpvd_depth = None
+
         # self.pvto_o = None # 2D som ecl2df dataframe (trykk; mettet og umettet)
         # self.pvto_press = None
         # self.pvtg_bg = None
@@ -76,6 +82,7 @@ class ElementFluidDescription:
             (rsvd_df["EQLNUM"] == self.eqlnum) & (rsvd_df["RS"].notnull())
         ]["Z"].to_numpy()
 
+
     def init_rvvd_from_df(self, rvvd_df):
         """
         Set rvvd, from an ecl2df.equil_df object
@@ -94,17 +101,28 @@ class ElementFluidDescription:
         raise NotImplementedError
 
     def init_from_ecl_df(self, df_dict):
-        if "PCGOC" in df_dict["EQUIL"].keys():
-            self.init_equil_from_df(df_dict["EQUIL"])
+        if "EQUIL" in df_dict.keys():
+            if "PCGOC" in df_dict["EQUIL"].keys():
+                self.init_equil_from_df(df_dict["EQUIL"])
 
-        if "PVT" in df_dict["PVT"].keys():
-            self.init_pvt_from_df(df_dict["PVT"])
+        if "PVT" in df_dict.keys():
+            if "PVT" in df_dict["PVT"].keys():
+                self.init_pvt_from_df(df_dict["PVT"])
 
-        if "RSVD" in df_dict["RSVD"].keys():
-            self.init_rsvd_from_df(df_dict["RSVD"])
+        if "RSVD" in df_dict.keys():
+            if "RS" in df_dict["RSVD"].keys():
+                self.init_rsvd_from_df(df_dict["RSVD"])
 
-        if "RVVD" in df_dict["RVVD"].keys():
-            self.init_rvvd_from_df(df_dict["RVVD"])
+        if "RVVD" in df_dict.keys():
+            if "RV" in df_dict["RVVD"].keys():
+                self.init_rvvd_from_df(df_dict["RVVD"])
+
+        if "BPVD" in df_dict.keys():
+            if "BP" in df_dict["BPVD"].keys():
+                self.init_bpvd_from_df(df_dict["BPVD"])
+        if "DPVD" in df_dict.keys():
+            if "DP" in df_dict["DPVD"].keys():
+                self.init_dpvd_from_df(df_dict["DPVD"])
 
     def validate_description(self):
         # pylint: disable=too-many-return-statements
@@ -122,7 +140,6 @@ class ElementFluidDescription:
 
         if self.owc is None:
             print("OWC not defined")
-            print(self.owc)
             return False
 
         if self.goc is None:
@@ -245,13 +262,60 @@ class ElementFluidDescription:
             )
 
         elif keyword == "RSVD":
-            pass
+            df = pd.DataFrame(columns=["KEYWORD", "EQLNUM", "RS", "Z",])
+
+            for i in range(len(self.rsvd_rs)):
+                df = df.append(
+                    {
+                        "KEYWORD": "RSVD",
+                        "EQLNUM": self.eqlnum,
+                        "RS": self.rsvd_rs[i],
+                        "Z": self.rsvd_depth[i],
+                    },
+                    ignore_index=True,
+                )
+
         elif keyword == "RVVD":
-            pass
+            df = pd.DataFrame(columns=["KEYWORD", "EQLNUM", "RV", "Z",])
+
+            for i in range(len(self.rvvd_rs)):
+                df = df.append(
+                    {
+                        "KEYWORD": "RVVD",
+                        "EQLNUM": self.eqlnum,
+                        "RV": self.rvvd_rv[i],
+                        "Z": self.rvvd_depth[i],
+                    },
+                    ignore_index=True,
+                )
+
         elif keyword == "BPVD":
-            pass
+            df = pd.DataFrame(columns=["KEYWORD", "EQLNUM", "BP", "Z",])
+
+            for i in range(len(self.bpvd_rs)):
+                df = df.append(
+                    {
+                        "KEYWORD": "BPVD",
+                        "EQLNUM": self.eqlnum,
+                        "BP": self.bpvd_bp[i],
+                        "Z": self.bpvd_depth[i],
+                    },
+                    ignore_index=True,
+                )
+
         elif keyword == "DPVD":
-            pass
+            df = pd.DataFrame(columns=["KEYWORD", "EQLNUM", "DP", "Z",])
+
+            for i in range(len(self.dpvd_rs)):
+                df = df.append(
+                    {
+                        "KEYWORD": "DPVD",
+                        "EQLNUM": self.eqlnum,
+                        "DP": self.dpvd_dp[i],
+                        "Z": self.dpvd_depth[i],
+                    },
+                    ignore_index=True,
+                )
         else:
             print("No supprt for keyword:", keyword)
 

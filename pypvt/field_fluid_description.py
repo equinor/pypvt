@@ -161,6 +161,34 @@ class FieldFluidDescription:
                 dframe = pd.merge(left=dframe, right=self.get_df("EQUIL"), how="outer")
             comments["EQUIL"] = "EQUIL kw created by pypvt"
 
+        if "RSVD" in keywords:
+            if dframe is None:
+                dframe = self.get_df("RSVD")
+            else:
+                dframe = pd.merge(left=dframe, right=self.get_df("RSVD"), how="outer")
+            comments["RSVD"] = "RSVD kw created by pypvt"
+
+        if "RVVD" in keywords:
+            if dframe is None:
+                dframe = self.get_df("RVVD")
+            else:
+                dframe = pd.merge(left=dframe, right=self.get_df("RVVD"), how="outer")
+            comments["RVVD"] = "RVVD kw created by pypvt"
+
+        if "BPVD" in keywords:
+            if dframe is None:
+                dframe = self.get_df("BPVD")
+            else:
+                dframe = pd.merge(left=dframe, right=self.get_df("BPVD"), how="outer")
+            comments["BPVD"] = "BPVD kw created by pypvt"
+
+        if "DPVD" in keywords:
+            if dframe is None:
+                dframe = self.get_df("DPVD")
+            else:
+                dframe = pd.merge(left=dframe, right=self.get_df("DPVD"), how="outer")
+            comments["DPVD"] = "DPVD kw created by pypvt"
+
         ecl2df.equil.df2ecl(
             dframe, keywords=keywords, comments=comments, filename=filename
         )
