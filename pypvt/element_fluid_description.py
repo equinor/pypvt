@@ -6,6 +6,9 @@ import pandas as pd
 
 
 # pylint: disable=too-many-instance-attributes
+# pylint: disable=too-many-public-methods
+# pylint: disable=too-many-branches
+
 class ElementFluidDescription:
 
     """ A representation of black oil pvt and fluid contacts
@@ -278,7 +281,7 @@ class ElementFluidDescription:
             )
 
         elif keyword == "RSVD":
-            df = pd.DataFrame(columns=["KEYWORD", "EQLNUM", "RS", "Z",])
+            df = pd.DataFrame(columns=["KEYWORD", "EQLNUM", "RS", "Z"])
 
             for i in range(len(self.rsvd_rs)):
                 df = df.append(
@@ -292,7 +295,7 @@ class ElementFluidDescription:
                 )
 
         elif keyword == "RVVD":
-            df = pd.DataFrame(columns=["KEYWORD", "EQLNUM", "RV", "Z",])
+            df = pd.DataFrame(columns=["KEYWORD", "EQLNUM", "RV", "Z"])
 
             for i in range(len(self.rvvd_rv)):
                 df = df.append(
@@ -306,7 +309,7 @@ class ElementFluidDescription:
                 )
 
         elif keyword == "BPVD":
-            df = pd.DataFrame(columns=["KEYWORD", "EQLNUM", "BP", "Z",])
+            df = pd.DataFrame(columns=["KEYWORD", "EQLNUM", "BP", "Z"])
 
             for i in range(len(self.bpvd_bp)):
                 df = df.append(
@@ -320,7 +323,7 @@ class ElementFluidDescription:
                 )
 
         elif keyword == "DPVD":
-            df = pd.DataFrame(columns=["KEYWORD", "EQLNUM", "DP", "Z",])
+            df = pd.DataFrame(columns=["KEYWORD", "EQLNUM", "DP", "Z"])
 
             for i in range(len(self.dpvd_dp)):
                 df = df.append(
