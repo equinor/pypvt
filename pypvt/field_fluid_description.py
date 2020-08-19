@@ -35,8 +35,8 @@ class FieldFluidDescription:
         dataframes["EQUIL"] = ecl2df.equil.df(eclfiles, keywords="EQUIL")
         dataframes["RSVD"] = ecl2df.equil.df(eclfiles, keywords="RSVD")
         dataframes["RVVD"] = ecl2df.equil.df(eclfiles, keywords="RVVD")
-        dataframes["BPVD"] = ecl2df.equil.df(eclfiles, keywords="BPVD")
-        dataframes["DPVD"] = ecl2df.equil.df(eclfiles, keywords="DPVD")
+        dataframes["PBVD"] = ecl2df.equil.df(eclfiles, keywords="PBVD")
+        dataframes["PDVD"] = ecl2df.equil.df(eclfiles, keywords="PDVD")
 
         return dataframes
 
@@ -177,19 +177,19 @@ class FieldFluidDescription:
                 dframe = pd.merge(left=dframe, right=self.get_df("RVVD"), how="outer")
             comments["RVVD"] = "RVVD kw created by pypvt"
 
-        if "BPVD" in keywords:
+        if "PBVD" in keywords:
             if dframe is None:
-                dframe = self.get_df("BPVD")
+                dframe = self.get_df("PBVD")
             else:
-                dframe = pd.merge(left=dframe, right=self.get_df("BPVD"), how="outer")
-            comments["BPVD"] = "BPVD kw created by pypvt"
+                dframe = pd.merge(left=dframe, right=self.get_df("PBVD"), how="outer")
+            comments["BPVD"] = "PBVD kw created by pypvt"
 
-        if "DPVD" in keywords:
+        if "PDVD" in keywords:
             if dframe is None:
-                dframe = self.get_df("DPVD")
+                dframe = self.get_df("PDVD")
             else:
-                dframe = pd.merge(left=dframe, right=self.get_df("DPVD"), how="outer")
-            comments["DPVD"] = "DPVD kw created by pypvt"
+                dframe = pd.merge(left=dframe, right=self.get_df("PDVD"), how="outer")
+            comments["DPVD"] = "PDVD kw created by pypvt"
 
         ecl2df.equil.df2ecl(
             dframe, keywords=keywords, comments=comments, filename=filename

@@ -40,11 +40,11 @@ class ElementFluidDescription:
         self.rvvd_rv = None
         self.rvvd_depth = None
 
-        self.bpvd_bp = None
-        self.bpvd_depth = None
+        self.pbvd_pb = None
+        self.pbvd_depth = None
 
-        self.dpvd_dp = None
-        self.dpvd_depth = None
+        self.pdvd_pd = None
+        self.pdvd_depth = None
 
         # self.pvto_o = None # 2D som ecl2df dataframe (trykk; mettet og umettet)
         # self.pvto_press = None
@@ -95,26 +95,28 @@ class ElementFluidDescription:
             (rvvd_df["EQLNUM"] == self.eqlnum) & (rvvd_df["RV"].notnull())
         ]["Z"].to_numpy()
 
-    def init_bpvd_from_df(self, bpvd_df):
+    def init_pbvd_from_df(self, pbvd_df):
         """
-        Set bpvd, from an ecl2df.equil_df object
+        Set pbvd, from an ecl2df.equil_df object
         """
-        self.bpvd_rv = bpvd_df[
-            (bpvd_df["EQLNUM"] == self.eqlnum) & (bpvd_df["BP"].notnull())
-        ]["BP"].to_numpy()
-        self.bpvd_depth = bpvd_df[
-            (bpvd_df["EQLNUM"] == self.eqlnum) & (bpvd_df["BP"].notnull())
+
+        self.pbvd_pb = pbvd_df[
+            (pbvd_df["EQLNUM"] == self.eqlnum) & (pbvd_df["PB"].notnull())
+        ]["PB"].to_numpy()
+        self.pbvd_depth = pbvd_df[
+            (pbvd_df["EQLNUM"] == self.eqlnum) & (pbvd_df["PB"].notnull())
         ]["Z"].to_numpy()
 
-    def init_dpvd_from_df(self, dpvd_df):
+    def init_pdvd_from_df(self, pdvd_df):
         """
-        Set dpvd, from an ecl2df.equil_df object
+        Set pdvd, from an ecl2df.equil_df object
         """
-        self.dpvd_rv = dpvd_df[
-            (dpvd_df["EQLNUM"] == self.eqlnum) & (dpvd_df["DP"].notnull())
-        ]["DP"].to_numpy()
-        self.dpvd_depth = dpvd_df[
-            (dpvd_df["EQLNUM"] == self.eqlnum) & (dpvd_df["DP"].notnull())
+
+        self.pdvd_pd = pdvd_df[
+            (pdvd_df["EQLNUM"] == self.eqlnum) & (pdvd_df["PD"].notnull())
+        ]["PD"].to_numpy()
+        self.pdvd_depth = pdvd_df[
+            (pdvd_df["EQLNUM"] == self.eqlnum) & (pdvd_df["PD"].notnull())
         ]["Z"].to_numpy()
 
     def init_pvt_from_df(self, pvt_df):
@@ -124,23 +126,36 @@ class ElementFluidDescription:
         raise NotImplementedError
 
     def init_from_ecl_df(self, df_dict):
-        if "PCGOC" in df_dict["EQUIL"].keys():
+
+        try:
             self.init_equil_from_df(df_dict["EQUIL"])
+        except:
+            pass
 
-        if "PVT" in df_dict["PVT"].keys():
+        try:
             self.init_pvt_from_df(df_dict["PVT"])
+        except:
+            pass
 
-        if "RS" in df_dict["RSVD"].keys():
+        try:
             self.init_rsvd_from_df(df_dict["RSVD"])
+        except:
+            pass
 
-        if "RV" in df_dict["RVVD"].keys():
+        try:
             self.init_rvvd_from_df(df_dict["RVVD"])
+        except:
+            pass
 
-        if "BP" in df_dict["BPVD"].keys():
-            self.init_bpvd_from_df(df_dict["BPVD"])
+        try:
+            self.init_pbvd_from_df(df_dict["PBVD"])
+        except:
+            pass
 
-        if "DP" in df_dict["DPVD"].keys():
-            self.init_dpvd_from_df(df_dict["DPVD"])
+        try:
+            self.init_pdvd_from_df(df_dict["PDVD"])
+        except:
+            pass
 
     def validate_description(self):
         # pylint: disable=too-many-return-statements
@@ -179,21 +194,40 @@ class ElementFluidDescription:
         if not self.bottom_struct:
             print("bottom_struct not defined")
 
-        if self.rsvd_rs is None:
-            print("RSVD not defined")
-            return False
+        if self.rvvd_rv is None and self.rsvd_rs is None:
+            print("PB/PD system expected")
+            if self.pbvd_depth is None:
+                print("PBVD not defined")
+                return False
 
-        if self.rsvd_depth is None:
-            print("RSVD not defined")
-            return False
+            if self.pbvd_pb is None:
+                print("PBVD not defined")
+                return False
 
-        if self.rvvd_rv is None:
-            print("RVVD not defined")
-            return False
+            if self.pdvd_depth is None:
+                print("PDVD not defined")
+                return False
 
-        if self.rvvd_depth is None:
-            print("RVVD not defined")
-            return False
+            if self.pdvd_pd is None:
+                print("PDVD not defined")
+                return False
+        else:
+            print("RS/RV system expected")
+            if self.rsvd_depth is None:
+                print("RSVD depth not defined")
+                return False
+
+            if self.rsvd_rs is None:
+                print("RSVD not defined")
+                return False
+
+            if self.rvvd_depth is None:
+                print("RVVD depth not defined")
+                return False
+
+            if self.rvvd_rv is None:
+                print("RVVD not defined")
+                return False
 
         return True
 
@@ -307,30 +341,30 @@ class ElementFluidDescription:
                     ignore_index=True,
                 )
 
-        elif keyword == "BPVD":
-            df = pd.DataFrame(columns=["KEYWORD", "EQLNUM", "BP", "Z"])
+        elif keyword == "PBVD":
+            df = pd.DataFrame(columns=["KEYWORD", "EQLNUM", "PB", "Z"])
 
-            for i in range(len(self.bpvd_bp)):
+            for i in range(len(self.pbvd_bp)):
                 df = df.append(
                     {
-                        "KEYWORD": "BPVD",
+                        "KEYWORD": "PBVD",
                         "EQLNUM": self.eqlnum,
-                        "BP": self.bpvd_bp[i],
-                        "Z": self.bpvd_depth[i],
+                        "PB": self.pbvd_pb[i],
+                        "Z": self.pbvd_depth[i],
                     },
                     ignore_index=True,
                 )
 
-        elif keyword == "DPVD":
-            df = pd.DataFrame(columns=["KEYWORD", "EQLNUM", "DP", "Z"])
+        elif keyword == "PDVD":
+            df = pd.DataFrame(columns=["KEYWORD", "EQLNUM", "PD", "Z"])
 
-            for i in range(len(self.dpvd_dp)):
+            for i in range(len(self.pdvd_pd)):
                 df = df.append(
                     {
-                        "KEYWORD": "DPVD",
+                        "KEYWORD": "PDVD",
                         "EQLNUM": self.eqlnum,
-                        "DP": self.dpvd_dp[i],
-                        "Z": self.dpvd_depth[i],
+                        "PD": self.pdvd_pd[i],
+                        "Z": self.pdvd_depth[i],
                     },
                     ignore_index=True,
                 )
