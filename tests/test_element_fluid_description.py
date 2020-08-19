@@ -15,9 +15,6 @@ def test_main():
 
 
 def test_init_from_ecl_df():
-    """
-    Initialize instance with rsvd / rvvd from df
-    """
 
     data_txt = (TESTDATA / "DATA").read_text(encoding="utf-8", errors="ignore")
 
@@ -81,6 +78,26 @@ def test_init_from_ecl_df():
     assert np.isclose(description.goc, 0)
 
 
+def test_init_equil_from_df():
+
+    data_txt = (TESTDATA / "DATA").read_text(encoding="utf-8", errors="ignore")
+
+    equil_txt = (TESTDATA / "equil").read_text(encoding="utf-8", errors="ignore")
+    equil_df = ecl2df.equil.df(data_txt + equil_txt, keywords="EQUIL")
+
+    description = ElementFluidDescription(1, 1)
+
+    description.init_equil_from_df(equil_df)
+
+    assert not description.validate_description()
+    assert np.isclose(description.owc, 1705.0)
+    assert np.isclose(description.goc, 0)
+
+
 if __name__ == "__main__":
+    print("test_main")
     test_main()
+    print("test_init_from_ecl_df")
     test_init_from_ecl_df()
+    print("test_init_equil_from_df")
+    test_init_equil_from_df()

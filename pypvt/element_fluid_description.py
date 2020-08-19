@@ -131,7 +131,8 @@ class ElementFluidDescription:
             self.init_equil_from_df(df_dict["EQUIL"])
 
         if df_dict["PVT"] is not None:
-            self.init_pvt_from_df(df_dict["PVT"])
+            self.pvt = None
+            # self.init_pvt_from_df(df_dict["PVT"])
 
         if df_dict["RSVD"] is not None:
             self.init_rsvd_from_df(df_dict["RSVD"])
@@ -183,7 +184,6 @@ class ElementFluidDescription:
             print("bottom_struct not defined")
 
         if self.rvvd_rv is None and self.rsvd_rs is None:
-            print("PB/PD system expected")
             if self.pbvd_depth is None:
                 print("PBVD not defined")
                 return False
@@ -200,7 +200,6 @@ class ElementFluidDescription:
                 print("PDVD not defined")
                 return False
         else:
-            print("RS/RV system expected")
             if self.rsvd_depth is None:
                 print("RSVD depth not defined")
                 return False
