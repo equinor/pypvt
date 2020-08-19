@@ -127,35 +127,23 @@ class ElementFluidDescription:
 
     def init_from_ecl_df(self, df_dict):
 
-        try:
+        if df_dict["EQUIL"] is not None:
             self.init_equil_from_df(df_dict["EQUIL"])
-        except:
-            pass
 
-        try:
+        if df_dict["PVT"] is not None:
             self.init_pvt_from_df(df_dict["PVT"])
-        except:
-            pass
 
-        try:
+        if df_dict["RSVD"] is not None:
             self.init_rsvd_from_df(df_dict["RSVD"])
-        except:
-            pass
 
-        try:
+        if df_dict["RVVD"] is not None:
             self.init_rvvd_from_df(df_dict["RVVD"])
-        except:
-            pass
 
-        try:
+        if df_dict["PBVD"] is not None:
             self.init_pbvd_from_df(df_dict["PBVD"])
-        except:
-            pass
 
-        try:
+        if df_dict["PDVD"] is not None:
             self.init_pdvd_from_df(df_dict["PDVD"])
-        except:
-            pass
 
     def validate_description(self):
         # pylint: disable=too-many-return-statements
@@ -344,7 +332,7 @@ class ElementFluidDescription:
         elif keyword == "PBVD":
             df = pd.DataFrame(columns=["KEYWORD", "EQLNUM", "PB", "Z"])
 
-            for i in range(len(self.pbvd_bp)):
+            for i in range(len(self.pbvd_pb)):
                 df = df.append(
                     {
                         "KEYWORD": "PBVD",
