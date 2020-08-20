@@ -80,24 +80,85 @@ def test_init_from_ecl_df():
 
 def test_init_equil_from_df():
 
-    data_txt = (TESTDATA / "DATA").read_text(encoding="utf-8", errors="ignore")
+    txt = (TESTDATA / "DATA").read_text(encoding="utf-8", errors="ignore")
 
-    equil_txt = (TESTDATA / "equil").read_text(encoding="utf-8", errors="ignore")
-    equil_df = ecl2df.equil.df(data_txt + equil_txt, keywords="EQUIL")
+    txt += (TESTDATA / "equil").read_text(encoding="utf-8", errors="ignore")
+    df = ecl2df.equil.df(txt, keywords="EQUIL")
 
     description = ElementFluidDescription(1, 1)
 
-    description.init_equil_from_df(equil_df)
+    description.init_equil_from_df(df)
 
     assert not description.validate_description()
     assert np.isclose(description.owc, 1705.0)
     assert np.isclose(description.goc, 0)
 
 
+def test_init_rsvd_from_df():
+
+    txt = (TESTDATA / "DATA").read_text(encoding="utf-8", errors="ignore")
+
+    txt += (TESTDATA / "rsvd").read_text(encoding="utf-8", errors="ignore")
+    df = ecl2df.equil.df(txt, keywords="RSVD")
+
+    description = ElementFluidDescription(1, 1)
+
+    description.init_rsvd_from_df(df)
+
+    assert not description.validate_description()
+    assert np.isclose(description.rsvd_rs[0], 184.0)
+
+
+def test_init_rvvd_from_df():
+
+    txt = (TESTDATA / "DATA").read_text(encoding="utf-8", errors="ignore")
+
+    txt += (TESTDATA / "rvvd").read_text(encoding="utf-8", errors="ignore")
+    df = ecl2df.equil.df(txt, keywords="RVVD")
+
+    description = ElementFluidDescription(1, 1)
+
+    description.init_rvvd_from_df(df)
+
+    assert not description.validate_description()
+    assert np.isclose(description.rvvd_rv[0], 0.5)
+
+
+def test_init_pbvd_from_df():
+
+    txt = (TESTDATA / "DATA").read_text(encoding="utf-8", errors="ignore")
+
+    txt += (TESTDATA / "pbvd").read_text(encoding="utf-8", errors="ignore")
+    df = ecl2df.equil.df(txt, keywords="PBVD")
+
+    description = ElementFluidDescription(1, 1)
+
+    description.init_pbvd_from_df(df)
+
+    assert not description.validate_description()
+    assert np.isclose(description.pbvd_pb[0], 360.0)
+
+
+def test_init_pdvd_from_df():
+
+    txt = (TESTDATA / "DATA").read_text(encoding="utf-8", errors="ignore")
+
+    txt += (TESTDATA / "pdvd").read_text(encoding="utf-8", errors="ignore")
+    df = ecl2df.equil.df(txt, keywords="PDVD")
+
+    description = ElementFluidDescription(1, 1)
+
+    description.init_pdvd_from_df(df)
+
+    assert not description.validate_description()
+    assert np.isclose(description.pdvd_pd[0], 60.0)
+
+
 if __name__ == "__main__":
-    print("test_main")
     test_main()
-    print("test_init_from_ecl_df")
     test_init_from_ecl_df()
-    print("test_init_equil_from_df")
     test_init_equil_from_df()
+    test_init_rsvd_from_df()
+    test_init_rvvd_from_df()
+    test_init_pbvd_from_df()
+    test_init_pdvd_from_df()
