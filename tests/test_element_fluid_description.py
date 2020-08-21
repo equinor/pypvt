@@ -3,6 +3,7 @@
 import pathlib
 
 import numpy as np
+import pandas as pd
 import ecl2df
 
 from pypvt import ElementFluidDescription
@@ -38,8 +39,8 @@ def test_init_from_ecl_df():
             "RSVD": rsvd_df,
             "RVVD": rvvd_df,
             "PVT": pvt_df,
-            "PBVD": None,
-            "PDVD": None,
+            "PBVD": pd.DataFrame,
+            "PDVD": pd.DataFrame,
         }
     )
 
@@ -68,8 +69,8 @@ def test_init_from_ecl_df():
             "PBVD": pbvd_df,
             "PDVD": pdvd_df,
             "PVT": pvt_df,
-            "RSVD": None,
-            "RVVD": None,
+            "RSVD": pd.DataFrame,
+            "RVVD": pd.DataFrame,
         }
     )
 
