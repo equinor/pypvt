@@ -9,7 +9,7 @@ from setuptools import setup
 with open(pathlib.Path(__file__).resolve().parent / "README.md") as f_handle:
     LONG_DESCRIPTION = f_handle.read()
 
-REQUIREMENTS = ["ecl2df", "pandas"]
+REQUIREMENTS = ["ecl2df", "pandas", "scipy", "numpy"]
 
 SETUP_REQUIREMENTS = ["setuptools >=28", "setuptools_scm"]
 
