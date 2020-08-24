@@ -845,7 +845,8 @@ class ElementFluidDescription:
                 print(
                     "ERROR: Non-monotinic dew-points\
                        in depth interval [%6.1d - %6.1d]"
-                ) % (d_1, d)
+                    % (d_1, d)
+                )
 
                 no_fatal_errors += 1
 
@@ -854,7 +855,8 @@ class ElementFluidDescription:
                 print(
                     "ERROR: Non-monotinic bubble-points\
                        in depth interval [%6.1d - %6.1d]"
-                ) % (d_1, d)
+                    % (d_1, d)
+                )
 
                 no_fatal_errors += 1
 
@@ -863,7 +865,8 @@ class ElementFluidDescription:
                 print(
                     "ERROR: Sat. pressure %4.2f > res. pressure %4.2f \
                        in depth interval [%6.1d - %6.1d]"
-                ) % (abs(dxdz), max_psat_grad, d_1, d)
+                    % (abs(dxdz), max_psat_grad, d_1, d)
+                )
 
                 no_errors += 1
 
@@ -872,7 +875,8 @@ class ElementFluidDescription:
                 print(
                     "WARNNING: Bubble-point gradient %4.2f > %4.2f \
                        in depth interval [%6.1d - %6.1d]"
-                ) % (abs(dxdz), max_psat_grad, d_1, d)
+                    % (abs(dxdz), max_psat_grad, d_1, d)
+                )
 
                 no_warnings += 1
 
