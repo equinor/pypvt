@@ -772,7 +772,6 @@ class ElementFluidDescription:
         """
         Performs a fluid PVT vs depth table consistency check
 
-        Generates consistent RSVD and RVVD tables
         """
         no_warnings = 0
         no_errors = 0
