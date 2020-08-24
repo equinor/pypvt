@@ -8,10 +8,10 @@ def main(case_name):
     fluid_description = FieldFluidDescription(ecl_case=case_name)
 
     print(fluid_description.validate_description())
-    # print (fluid_description.fluid_descriptions[0].rvvd_rv)
-    # print (fluid_description.fluid_descriptions[0].rvvd_depth)
-    # loop over all equil regions
-    # check consistency in pvt
+    for fluid in fluid_description.fluid_descriptions:
+        fluid.calc_fluid_prop_vs_depth(no_nodes=2)
+        fluid.inplace_report()
+        fluid.pvt_gradient_check()
 
 
 if __name__ == "__main__":
