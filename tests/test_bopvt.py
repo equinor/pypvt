@@ -2,11 +2,11 @@
 
 import pathlib
 
-import numpy as np
-import pandas as pd
-import ecl2df
+# import numpy as np
+# import pandas as pd
+# import ecl2df
 
-from pypvt import BoPVT
+# from pypvt import BoPVT
 
 TESTDATA = pathlib.Path(__file__).resolve().parent / "data"
 
