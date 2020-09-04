@@ -35,7 +35,6 @@ def main() -> None:
         "option."
     )
 
-    # Add assisted history matching argument parser:
     parser_checks = subparsers.add_parser(
         "check", help="Run check and consistency algorithms on simulation and pvt data."
     )
