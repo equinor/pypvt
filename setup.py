@@ -46,6 +46,11 @@ setup(
         "Topic :: Scientific/Engineering",
     ],
     packages=["pypvt"],
+    entry_points={
+        "console_scripts": [
+            "pypvt=pypvt._cli:main",
+        ]
+    },
     python_requires="~=3.6",
     zip_safe=False,
     install_requires=REQUIREMENTS,
