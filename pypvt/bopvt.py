@@ -151,7 +151,7 @@ class BoPVT:
 
     # -------------------------------------------------------------------------
     def calc_rs(self, pbub):
-        """ "
+        """
         Returns Rs (solution gas-oil-ratio) for given bubble-point pressure
 
         Based on linear interpolation in PVTO table.
@@ -183,7 +183,7 @@ class BoPVT:
 
     # -------------------------------------------------------------------------
     def calc_pbub(self, rs):
-        """ "
+        """
         Returns bubble-point for given solution oil-gas-ratio
 
         Based on linear interpolation in PVTO table.
@@ -215,7 +215,7 @@ class BoPVT:
 
     # -------------------------------------------------------------------------
     def calc_bo(self, pres, **kwargs):
-        """ "
+        """
         Returns Bo for given pressure (and optionally rs OR pbub)
 
         If only pressure is given, the saturated Bo is returned
@@ -297,7 +297,7 @@ class BoPVT:
 
     # -------------------------------------------------------------------------
     def calc_viso(self, pres, **kwargs):
-        """ "
+        """
         Returns Viso for given pressure (and optionally rs OR pbub)
 
         If only pressure is given, the saturated Viso is returned
@@ -379,7 +379,7 @@ class BoPVT:
 
     # -------------------------------------------------------------------------
     def calc_deno(self, pres, **kwargs):
-        """ "
+        """
         Returns reservoir oil density for given pressure (and optionally rs OR pbub)
 
         If only pressure is given, the saturated density is returned
@@ -417,7 +417,7 @@ class BoPVT:
 
     # -------------------------------------------------------------------------
     def calc_rv(self, pdew):
-        """ "
+        """
         Under construction - Need to solve undersaturated entries
 
         Returns rv (solution oil-gas-ratio) for given dew-point pressure
@@ -454,7 +454,7 @@ class BoPVT:
 
     # -------------------------------------------------------------------------
     def calc_pdew(self, rv):
-        """ "
+        """
         Under construction - Need to solve undersaturated table entries
 
         Returns pdew for given solution oil-gas ratio
@@ -492,7 +492,7 @@ class BoPVT:
 
     # -------------------------------------------------------------------------
     def calc_bg(self, pres, **kwargs):
-        """ "
+        """
         Under construction - Need to solve issue with undersaturated entries
 
         Returns Bg for given pressure (and optionally rv OR pdew)
@@ -580,7 +580,7 @@ class BoPVT:
 
     # -------------------------------------------------------------------------
     def calc_deng(self, pres, **kwargs):
-        """ "
+        """
         Returns reservoir gas density for given pressure (and optionally rv OR pdew)
 
         If only pressure is given, the saturated density is returned
@@ -617,7 +617,7 @@ class BoPVT:
 
     # -------------------------------------------------------------------------
     def calc_visg(self, pres, **kwargs):
-        """ "
+        """
 
         Returns reservoir gas viscosity for given pressure (and optionally rv OR pdew)
 
@@ -713,7 +713,7 @@ class BoPVT:
 
     # -------------------------------------------------------------------------
     def calc_bw(self, pres):
-        """ "
+        """
 
         Returns reservoir water Bw for given pressure
 
@@ -732,7 +732,7 @@ class BoPVT:
 
     # -------------------------------------------------------------------------
     def calc_denw(self, pres):
-        """ "
+        """
 
         Returns reservoir water density for given pressure
 
@@ -747,7 +747,7 @@ class BoPVT:
 
     # -------------------------------------------------------------------------
     def calc_visw(self, pres):
-        """ "
+        """
 
         Returns reservoir water viscosity for given pressure
 
