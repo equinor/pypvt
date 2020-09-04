@@ -10,7 +10,7 @@ from .element_fluid_description import ElementFluidDescription
 
 # pylint: disable=too-many-branches
 class FieldFluidDescription:
-    """ A representation of black oil pvt and fluid contacts
+    """A representation of black oil pvt and fluid contacts
     for a collection of fluid systems, ie a field.
     """
 
