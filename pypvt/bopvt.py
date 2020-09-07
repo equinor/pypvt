@@ -156,7 +156,7 @@ class BoPVT:
 
         Based on linear interpolation in PVTO table.
 
-        NB: Uses constant extraplation outside table ranges - This should
+        NB: Uses constant extrapolation outside table ranges - This should
         be updated
 
         """
@@ -188,7 +188,7 @@ class BoPVT:
 
         Based on linear interpolation in PVTO table.
 
-        NB: Uses constant extraplation outside table ranges - This should
+        NB: Uses constant extrapolation outside table ranges - This should
         be updated
 
         """
