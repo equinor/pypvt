@@ -977,7 +977,7 @@ class ElementFluidDescription:
             new_rvvd_rv.append(self.res_depth[0])
 
         # Correct tables at GOC
-        elif top < goc < woc:
+        else:
 
             delta = [abs(d - goc) for d in self.res_depth]
             i_goc = delta.index(min(delta))

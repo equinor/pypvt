@@ -1,5 +1,5 @@
 """field_fluid_description module"""
-
+from typing import List
 import sys
 import copy
 
@@ -7,6 +7,7 @@ import pandas as pd
 import ecl2df
 
 from pypvt.element_fluid_description import ElementFluidDescription
+
 
 # pylint: disable=too-many-branches
 class FieldFluidDescription:
@@ -148,48 +149,30 @@ class FieldFluidDescription:
 
         return dataframe
 
-    def write_equilkws(self, keywords, filename):
+    def write_equilkws(self, keywords: List[str], filename: str) -> None:
         """
-        Write kws equil, rsvd, rvvd, pbvd, pdvd to file
-        """
+        Write keywords equil, rsvd, rvvd, pbvd, pdvd to file
 
+        Args:
+            keywords: List of keywords to export.
+            filename: Filename to export keywords to
+
+        Returns:
+            None
+
+        """
         comments = {}
         dframe = None
+        lookup_keywords = ["EQUIL", "RSVD", "RVVD", "PBVD", "PDVD"]
 
-        if "EQUIL" in keywords:
-            if dframe is None:
-                dframe = self.get_df("EQUIL")
-            else:
-                dframe = pd.merge(left=dframe, right=self.get_df("EQUIL"), how="outer")
-            comments["EQUIL"] = "EQUIL kw created by pypvt"
+        for keyword in lookup_keywords:
 
-        if "RSVD" in keywords:
-            if dframe is None:
-                dframe = self.get_df("RSVD")
-            else:
-                dframe = pd.merge(left=dframe, right=self.get_df("RSVD"), how="outer")
-            comments["RSVD"] = "RSVD kw created by pypvt"
-
-        if "RVVD" in keywords:
-            if dframe is None:
-                dframe = self.get_df("RVVD")
-            else:
-                dframe = pd.merge(left=dframe, right=self.get_df("RVVD"), how="outer")
-            comments["RVVD"] = "RVVD kw created by pypvt"
-
-        if "PBVD" in keywords:
-            if dframe is None:
-                dframe = self.get_df("PBVD")
-            else:
-                dframe = pd.merge(left=dframe, right=self.get_df("PBVD"), how="outer")
-            comments["BPVD"] = "PBVD kw created by pypvt"
-
-        if "PDVD" in keywords:
-            if dframe is None:
-                dframe = self.get_df("PDVD")
-            else:
-                dframe = pd.merge(left=dframe, right=self.get_df("PDVD"), how="outer")
-            comments["DPVD"] = "PDVD kw created by pypvt"
+            if keyword in keywords:
+                if dframe is None:
+                    dframe = self.get_df(keyword)
+                else:
+                    dframe = pd.merge(left=dframe, right=self.get_df(keyword))
+                comments[keyword] = f"{keyword} kw created by pypvt"
 
         ecl2df.equil.df2ecl(
             dframe, keywords=keywords, comments=comments, filename=filename
