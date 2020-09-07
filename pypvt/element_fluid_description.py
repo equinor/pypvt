@@ -17,13 +17,18 @@ from .bopvt import BoPVT
 # pylint: disable=expression-not-assigned
 class ElementFluidDescription:
 
-    """ A representation of black oil pvt and fluid contacts
+    """A representation of black oil pvt and fluid contacts
     for a fluid system, valid for one specific equil number
     in an eclipse simulation deck.
     """
 
     def __init__(
-        self, eqlnum=0, pvtnum=0, top_struct=0, bottom_struct=10000, ecl_case=None,
+        self,
+        eqlnum=0,
+        pvtnum=0,
+        top_struct=0,
+        bottom_struct=10000,
+        ecl_case=None,
     ):
 
         self.ecl_case = ecl_case

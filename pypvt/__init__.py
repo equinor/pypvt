@@ -1,3 +1,3 @@
-from .element_fluid_description import ElementFluidDescription
-from .field_fluid_description import FieldFluidDescription
-from .bopvt import BoPVT
+from pypvt.element_fluid_description import ElementFluidDescription
+from pypvt.field_fluid_description import FieldFluidDescription
+from pypvt.bopvt import BoPVT
