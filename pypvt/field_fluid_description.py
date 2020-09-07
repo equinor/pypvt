@@ -6,7 +6,7 @@ import copy
 import pandas as pd
 import ecl2df
 
-from .element_fluid_description import ElementFluidDescription
+from pypvt.element_fluid_description import ElementFluidDescription
 
 # pylint: disable=too-many-branches
 class FieldFluidDescription:
