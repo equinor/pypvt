@@ -671,9 +671,9 @@ class ElementFluidDescription:
             # Update node depth
             d_next = d + delta_d
 
-            if abs(d_next - goc) < delta_d:
+            if abs(d_next - goc) < delta_d*0.9:
                 d_next = goc
-            if abs(d_next - woc) < delta_d:
+            if abs(d_next - woc) < delta_d*0.9:
                 d_next = woc
 
             # Update new node pressure
