@@ -23,7 +23,12 @@ class ElementFluidDescription:
     """
 
     def __init__(
-        self, eqlnum=0, pvtnum=0, top_struct=0, bottom_struct=10000, ecl_case=None,
+        self,
+        eqlnum=0,
+        pvtnum=0,
+        top_struct=0,
+        bottom_struct=10000,
+        ecl_case=None,
     ):
 
         self.ecl_case = ecl_case
