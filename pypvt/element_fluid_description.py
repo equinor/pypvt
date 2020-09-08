@@ -23,12 +23,7 @@ class ElementFluidDescription:
     """
 
     def __init__(
-        self,
-        eqlnum=0,
-        pvtnum=0,
-        top_struct=0,
-        bottom_struct=10000,
-        ecl_case=None,
+        self, eqlnum=0, pvtnum=0, top_struct=0, bottom_struct=10000, ecl_case=None,
     ):
 
         self.ecl_case = ecl_case
@@ -671,9 +666,9 @@ class ElementFluidDescription:
             # Update node depth
             d_next = d + delta_d
 
-            if abs(d_next - goc) < delta_d*0.9:
+            if abs(d_next - goc) < delta_d * 0.9:
                 d_next = goc
-            if abs(d_next - woc) < delta_d*0.9:
+            if abs(d_next - woc) < delta_d * 0.9:
                 d_next = woc
 
             # Update new node pressure
