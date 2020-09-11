@@ -9,6 +9,9 @@ from scipy.interpolate import interp1d
 # pylint: disable=too-many-arguments
 # pylint: disable=no-else-return
 # pylint: disable=too-many-locals
+# pylint: disable=too-many-branches
+# pylint: disable=too-many-statements
+# pylint: disable=raise-missing-from
 
 # =============================================================================
 class BoPVT:
@@ -19,7 +22,7 @@ class BoPVT:
     Contains standard black-oil tables and methods for calculation of standard
     fluid properties based on the PVT tables
 
-    NB: Most PVT-table routines use constant extraplation outside table ranges -
+    NB: The PVT-table routines do not allow extrapolation -
     This should potentially be revised
 
     """
@@ -48,7 +51,7 @@ class BoPVT:
         # E100-PVT tables (2D numpy arrays)
         self.pvto = pvto_arr  # PVTO table containing RS, pres, Bo and Viso )
         self.pvtg = pvtg_arr  # PVTG table containing pres, rv, Bg and Visg )
-        self.pvtw = pvtw_arr  # PVTW table containing pref, Bwref, Cw and Cv
+        self.pvtw = pvtw_arr  # PVTW table containing pref, Bwref, Cw visw_ref and Cv
 
     # ------------------------------------------------------------------------
     def set_PRINT_WARNING(self, print_warning=True):
@@ -97,7 +100,13 @@ class BoPVT:
         if self.pvtnum not in eql_df.PVTNUM.unique():
             raise ValueError("PVTNUM not found in PVTG dataframe " + str(self.pvtnum))
 
-        df = eql_df[eql_df["PVTNUM"] == self.pvtnum].drop(columns=["PVTNUM"])
+        required_cols = ["PRESSURE", "OGR", "VOLUMEFACTOR", "VISCOSITY"]
+        try:
+            df = eql_df[eql_df["PVTNUM"] == self.pvtnum][required_cols]
+        except:
+            raise ValueError(
+                "Required dataframe columns headers are: " + str(required_cols)
+            )
 
         self.pvtg = df.to_numpy()
 
@@ -114,7 +123,13 @@ class BoPVT:
         if self.pvtnum not in eql_df.PVTNUM.unique():
             raise ValueError("PVTNUM not found in PVTO dataframe")
 
-        df = eql_df[eql_df["PVTNUM"] == self.pvtnum].drop(columns=["PVTNUM"])
+        required_cols = ["RS", "PRESSURE", "VOLUMEFACTOR", "VISCOSITY"]
+        try:
+            df = eql_df[eql_df["PVTNUM"] == self.pvtnum][required_cols]
+        except:
+            raise ValueError(
+                "Required dataframe columns headers are: " + str(required_cols)
+            )
 
         self.pvto = df.to_numpy()
 
@@ -131,7 +146,19 @@ class BoPVT:
         if self.pvtnum not in eql_df.PVTNUM.unique():
             raise ValueError("PVTNUM not found in PVTW dataframe")
 
-        df = eql_df[eql_df["PVTNUM"] == self.pvtnum].drop(columns=["PVTNUM"])
+        required_cols = [
+            "PRESSURE",
+            "VOLUMEFACTOR",
+            "COMPRESSIBILITY",
+            "VISCOSITY",
+            "VISCOSIBILITY",
+        ]
+        try:
+            df = eql_df[eql_df["PVTNUM"] == self.pvtnum][required_cols]
+        except:
+            raise ValueError(
+                "Required dataframe columns headers are: " + str(required_cols)
+            )
 
         self.pvtw = df.to_numpy()
 
@@ -156,8 +183,7 @@ class BoPVT:
 
         Based on linear interpolation in PVTO table.
 
-        NB: Uses constant extrapolation outside table ranges - This should
-        be updated
+        NB: Does not allow extrapolation outside table ranges
 
         """
         pvto = self.pvto
@@ -169,13 +195,13 @@ class BoPVT:
             pressures = [r[1] for r in pvto if r[0] == rs]
             pb_tab.append(pressures[0])
 
-        if (pbub > max(pb_tab) or pbub < min(pb_tab)) and self.PRINT_WARNING:
+        if pbub > max(pb_tab) or pbub < min(pb_tab):
 
-            print(
-                "\nWARNING: %s of %10.3e outside PVT table interval [%10.3e , %10.3e]"
-                % ("Pbub", pbub, min(pb_tab), max(pb_tab))
-            )
-            print("Using constant extrapolation\n")
+            # print(
+            #    "\nWARNING: %s of %10.3e outside PVT table interval [%10.3e , %10.3e]"
+            #    % ("Pbub", pbub, min(pb_tab), max(pb_tab))
+            # )
+            raise ValueError("Pbub outside PVTO table interval")
 
         rs = np.interp(pbub, pb_tab, rs_tab)
 
@@ -188,8 +214,7 @@ class BoPVT:
 
         Based on linear interpolation in PVTO table.
 
-        NB: Uses constant extrapolation outside table ranges - This should
-        be updated
+        NB: Does not allow extrapolation outside PVTO range
 
         """
         pvto = self.pvto
@@ -201,13 +226,13 @@ class BoPVT:
             pressures = [r[1] for r in pvto if r[0] == rst]
             pb_tab.append(pressures[0])
 
-        if (rs > max(rs_tab) or rs < min(rs_tab)) and self.PRINT_WARNING:
+        if rs > max(rs_tab) or rs < min(rs_tab):
 
-            print(
-                "\nWARNING: %s of %10.3e outside PVT table interval [%10.3e , %10.3e]"
-                % ("RS", rs, min(rs_tab), max(rs_tab))
-            )
-            print("Using constant extrapolation\n")
+            # print(
+            #    "\nWARNING: %s of %10.3e outside PVT table interval [%10.3e , %10.3e]"
+            #    % ("RS", rs, min(rs_tab), max(rs_tab))
+            # )
+            raise ValueError("RS outside PVTO table range")
 
         pbub = np.interp(rs, rs_tab, pb_tab)
 
@@ -220,8 +245,7 @@ class BoPVT:
 
         If only pressure is given, the saturated Bo is returned
 
-        NB: Uses constant extraplation outside table ranges - This should
-        be updated
+        NB: Does not allow extrapolation outside PVTO table range
         """
 
         if len(kwargs) > 1:
@@ -245,6 +269,9 @@ class BoPVT:
 
                 bos = [r[2] for r in pvto if r[0] == rst]
                 sat_bo_tab.append(bos[0])
+
+            if pres < min(pb_tab) or pres > max(pb_tab):
+                raise ValueError("Saturation pressure outside PVTO table range")
 
             bo = np.interp(pres, pb_tab, sat_bo_tab)
 
@@ -328,6 +355,9 @@ class BoPVT:
                 visos = [r[3] for r in pvto if r[0] == rst]
                 sat_viso_tab.append(visos[0])
 
+            if pres < min(pb_tab) or pres > max(pb_tab):
+                raise ValueError("Saturation pressure outside PVTO table range")
+
             viso = np.interp(pres, pb_tab, sat_viso_tab)
 
             return viso
@@ -384,8 +414,6 @@ class BoPVT:
 
         If only pressure is given, the saturated density is returned
 
-        NB: Uses constant extraplation outside table ranges - This should
-        be updated
         """
 
         # Calculate rs
@@ -424,29 +452,32 @@ class BoPVT:
 
         Based on linear interpolation in PVTG table.
 
-        NB: Uses constant extraplation outside table ranges - This should
-        be updated
+        NB: Does not allow for extrapolation outside PVTG table range
 
         """
 
-        print("Undersaturated entries not solved yet")
-
         pvtg = self.pvtg
 
-        pd_tab = np.unique(pvtg[:, 0], axis=0)
-
+        pd_tab = []
         rv_tab = []
-        for p in pd_tab:
-            rvs = [r[1] for r in pvtg if r[0] == p]
-            rv_tab.append(rvs[0])
 
-        if (pdew > max(pd_tab) or pdew < min(pd_tab)) and self.PRINT_WARNING:
+        p_prev = -1.0
+        for row in pvtg:
+            p = row[0]
+            rvx = row[1]
+            if p != p_prev and rvx not in rv_tab:
+                pd_tab.append(p)
+                rv_tab.append(rvx)
 
-            print(
-                "\nWARNING: %s of %10.3e outside PVT table interval [%10.3e , %10.3e]"
-                % ("Pdew", pdew, min(pd_tab), max(pd_tab))
-            )
-            print("Using constant extrapolation\n")
+            p_prev = p
+
+        if pdew > max(pd_tab) or pdew < min(pd_tab):
+
+            # print(
+            #    "\nWARNING: %s of %10.3e outside PVT table interval [%10.3e , %10.3e]"
+            #    % ("Pdew", pdew, min(pd_tab), max(pd_tab))
+            # )
+            raise ValueError("Pdew outside PVTG table range")
 
         rv = np.interp(pdew, pd_tab, rv_tab)
 
@@ -460,30 +491,33 @@ class BoPVT:
         Returns pdew for given solution oil-gas ratio
 
         Based on linear interpolation in PVTG table.
-        NB: Uses constant extraplation outside table ranges
+
+        NB: Does not allow for extrapolation outside PVTG table range
 
         """
 
-        print("Undersaturated entries not solved yet")
         pvtg = self.pvtg
 
-        pd_tab = np.unique(pvtg[:, 0], axis=0)
-
+        pd_tab = []
         rv_tab = []
-        for p in pd_tab:
-            rvs = [r[1] for r in pvtg if r[0] == p]
-            rv_tab.append(rvs[0])
 
-        if (rv > max(rv_tab) or rv < min(rv_tab)) and self.PRINT_WARNING:
+        p_prev = -1.0
+        for row in pvtg:
+            p = row[0]
+            rvx = row[1]
+            if p != p_prev and rvx not in rv_tab:
+                pd_tab.append(p)
+                rv_tab.append(rvx)
 
-            print(
-                "\nWARNING: %s of %10.3e outside PVT table interval [%10.3e , %10.3e]"
-                % ("Rv", rv, min(rv_tab), max(rv_tab))
-            )
-            print("Using constant extrapolation\n")
+            p_prev = p
 
-        rv = max(min(rv_tab), rv)
-        rv = min(max(rv_tab), rv)
+        if rv > max(rv_tab) or rv < min(rv_tab):
+
+            # print(
+            #    "\nWARNING: %s of %10.3e outside PVT table interval [%10.3e , %10.3e]"
+            #    % ("Rv", rv, min(rv_tab), max(rv_tab))
+            # )
+            raise ValueError("Rv outside PVTG table range")
 
         f = interp1d(rv_tab, pd_tab)
         pdew = f(rv)
@@ -493,14 +527,13 @@ class BoPVT:
     # -------------------------------------------------------------------------
     def calc_bg(self, pres, **kwargs):
         """
-        Under construction - Need to solve issue with undersaturated entries
-
         Returns Bg for given pressure (and optionally rv OR pdew)
 
         If only pressure is given, the saturated Bg is returned
-        """
 
-        print("Undersaturated entries not solved yet")
+        NB: Does not allow for extrapolation
+
+        """
 
         if len(kwargs) > 1:
             raise ValueError("Too many arguments in function call to calc_bg")
@@ -512,13 +545,24 @@ class BoPVT:
         # ---------------------------------------------------------------------
         if len(kwargs) == 0:
 
-            pd_tab = np.unique(pvtg[:, 0], axis=0)
-
+            pd_tab = []
+            rv_tab = []
             inv_bg_tab = []
 
-            for p in pd_tab:
-                l = [r[2] for r in pvtg if r[0] == p]
-                inv_bg_tab.append(1.0 / l[0])
+            p_prev = -1.0
+            for row in pvtg:
+                p = row[0]
+                rvx = row[1]
+                bg = row[2]
+                if p != p_prev and rvx not in rv_tab:
+                    pd_tab.append(p)
+                    rv_tab.append(rvx)
+                    inv_bg_tab.append(1.0 / bg)
+
+                p_prev = p
+
+            if pres > max(pd_tab) or pres < min(pd_tab):
+                raise ValueError("Pdew outside PVTG table range")
 
             inv_bg = np.interp(pres, pd_tab, inv_bg_tab)
             bg = 1.0 / inv_bg
@@ -554,13 +598,15 @@ class BoPVT:
             # NOTE: If speed is an issue - the following interpolation
             # should be done smarter
 
-            pd_tab = np.unique(pvtg[:, 0], axis=0)
+            p_tab = np.unique(pvtg[:, 0], axis=0)  # include all pressure entries
 
             inv_bg_tab = []
 
             # Interpolate for all rv
-            for p in pd_tab:
-                rvt = [r[1] for r in pvtg if r[0] == p]
+            for p in p_tab:
+                rvt = [
+                    r[1] for r in pvtg if r[0] == p
+                ]  # pick up all rvs for given pressure
                 inv_bgt = [1.0 / r[2] for r in pvtg if r[0] == p]
 
                 if len(rvt) < 1:
@@ -573,7 +619,7 @@ class BoPVT:
 
                 inv_bg_tab.append(inv_bg)
 
-            inv_bg = np.interp(pres, pd_tab, inv_bg_tab)
+            inv_bg = np.interp(pres, p_tab, inv_bg_tab)
             bg = 1.0 / inv_bg
 
             return bg
@@ -585,8 +631,6 @@ class BoPVT:
 
         If only pressure is given, the saturated density is returned
         """
-
-        print("Undersaturated entries not solved yet")
 
         # Calculate rv
         if len(kwargs) == 0:
@@ -626,26 +670,35 @@ class BoPVT:
         Note: E100 Interpolates as 1/(Bg*visg)
         """
 
-        print("Undersaturated entries not solved yet")
-
         if len(kwargs) > 1:
-            raise ValueError("Too many arguments in function call to calc_bg")
+            raise ValueError("Too many arguments in function call to calc_visg")
 
         pvtg = self.pvtg
 
         # ---------------------------------------------------------------------
-        # Return saturated Bg (note E100 interpolates 1/Bg)
+        # Return saturated Visg (note E100 interpolates 1/(Bg*Visg)
         # ---------------------------------------------------------------------
         if len(kwargs) == 0:
 
-            pd_tab = np.unique(pvtg[:, 0], axis=0)
-
+            pd_tab = []
+            rv_tab = []
             inv_bv_tab = []
 
-            for p in pd_tab:
-                b = [r[2] for r in pvtg if r[0] == p]
-                v = [r[3] for r in pvtg if r[0] == p]
-                inv_bv_tab.append(1.0 / (b[0] * v[0]))
+            p_prev = -1.0
+            for row in pvtg:
+                p = row[0]
+                rvx = row[1]
+                b = row[2]
+                v = row[3]
+                if p != p_prev and rvx not in rv_tab:
+                    pd_tab.append(p)
+                    rv_tab.append(rvx)
+                    inv_bv_tab.append(1.0 / (b * v))
+
+                p_prev = p
+
+            if pres > max(pd_tab) or pres < min(pd_tab):
+                raise ValueError("Pdew outside PVTG table range")
 
             inv_bv = np.interp(pres, pd_tab, inv_bv_tab)
 
@@ -688,13 +741,14 @@ class BoPVT:
 
             inv_bv_tab = []
 
-            # Interpolate for all rv
+            # Interpolate for rv, all pressures
             for p in pd_tab:
                 rvt = [r[1] for r in pvtg if r[0] == p]
                 inv_bvt = [1.0 / (r[2] * r[3]) for r in pvtg if r[0] == p]
 
                 if len(rvt) < 1:
                     inv_bv = inv_bvt[0]
+
                 else:
                     f = interp1d(rvt, inv_bvt)
                     x = max(min(rvt), rv)
