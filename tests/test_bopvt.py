@@ -90,11 +90,11 @@ def test_pvto():
 
     pvtnum = 2
     pvt_model = pvt_models[pvtnum - 1]
-    try:
-        pvt_model.calc_pbub(rs)
-        raise ValueError("This should have been outside range")
-    except:
-        pass
+    # try:
+    #    pvt_model.calc_pbub(rs)
+    #    raise ValueError("This should have been outside range")
+    # except:
+    #    pass
 
     bo = np.interp(p, [148.9, 213.3], [1.22937, 1.30507])
     assert np.isclose(pvt_model.calc_bo(p), bo)
