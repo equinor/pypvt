@@ -5,7 +5,7 @@ import copy
 import pandas as pd
 import numpy as np
 
-from .bopvt import BoPVT
+from pypvt.bopvt import BoPVT
 
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-public-methods
@@ -15,6 +15,8 @@ from .bopvt import BoPVT
 # pylint: disable=invalid-name
 # pylint: disable=too-many-locals
 # pylint: disable=expression-not-assigned
+
+
 class ElementFluidDescription:
 
     """A representation of black oil pvt and fluid contacts
@@ -197,7 +199,7 @@ class ElementFluidDescription:
             if "PVTO" in pvt_df["KEYWORD"].unique():
                 self.pvt_model.set_pvto_from_df(
                     pvt_df[pvt_df["KEYWORD"] == "PVTO"][
-                        ["RS", "PRESSURE", "VOLUMEFACTOR", "OILDENSITY", "PVTNUM"]
+                        ["RS", "PRESSURE", "VOLUMEFACTOR", "VISCOSITY", "PVTNUM"]
                     ]
                 )
             else:
