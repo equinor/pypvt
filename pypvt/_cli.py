@@ -13,6 +13,7 @@ def pvt_consistency_check(args: argparse.Namespace) -> None:
     Returns:
         Nothing
     """
+
     fluid_description = FieldFluidDescription(ecl_case=args.ecl_case)
 
     print(fluid_description.validate_description())
@@ -20,12 +21,14 @@ def pvt_consistency_check(args: argparse.Namespace) -> None:
         fluid.calc_fluid_prop_vs_depth(no_nodes=args.nodes)
         fluid.inplace_report()
         fluid.pvt_gradient_check()
+    fluid_description.create_consistency_report()
 
 
 def main() -> None:
     """
     Main functionality run when the 'pypvt' command-line tool is called.
     """
+
     parser = argparse.ArgumentParser(description=("Command line interface for pypvt."))
 
     subparsers = parser.add_subparsers(

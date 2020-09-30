@@ -1,4 +1,5 @@
 """field_fluid_description module"""
+
 from typing import List
 import sys
 import copy
@@ -7,9 +8,11 @@ import pandas as pd
 import ecl2df
 
 from pypvt.element_fluid_description import ElementFluidDescription
-
+import pypvt
 
 # pylint: disable=too-many-branches
+
+
 class FieldFluidDescription:
     """A representation of black oil pvt and fluid contacts
     for a collection of fluid systems, ie a field.
@@ -22,6 +25,8 @@ class FieldFluidDescription:
         self.inacive_fluid_index = {}
         self.max_depth = (10000,)
         self.min_depth = (0,)
+
+        self.pvt_logger = pypvt.get_pvt_logger()
 
         if ecl_case:
             self.init_from_ecl(ecl_case)
@@ -177,3 +182,41 @@ class FieldFluidDescription:
         ecl2df.equil.df2ecl(
             dframe, keywords=keywords, comments=comments, filename=filename
         )
+
+    def create_consistency_report(self):
+        def filter_records(records, rtype, pvtnum):
+            selection = []
+            for record in records:
+                if (
+                    record.__dict__["levelname"] == rtype
+                    and record.__dict__.get("pvtnum", None) == pvtnum
+                ):
+                    selection.append(record)
+            return selection
+
+        records = pypvt.get_pvt_records_list()
+        print("***********************************************************")
+        print("*****             PVT consistency report               ****")
+        print("*****                                                  ****")
+        print()
+        print(
+            "This model has ",
+            len(self.fluid_descriptions),
+            " active equli regions and ",
+            len(self.inactive_fluid_descriptions),
+            " inactive",
+        )
+        print()
+        for fluid in self.fluid_descriptions:
+            print("***********************************************************")
+            print("EQUIL nr: ", fluid.eqlnum, " PVTNUM:", fluid.pvtnum)
+
+            warnings = filter_records(records, "WARNING", fluid.pvtnum)
+            print("WARNINGS: ", len(warnings))
+            for record in warnings:
+                print("  ", record.__dict__["msg"])
+
+            errors = filter_records(records, "ERROR", fluid.pvtnum)
+            print("ERRORS: ", len(errors))
+            for record in errors:
+                print("  ", record.__dict__["msg"])
