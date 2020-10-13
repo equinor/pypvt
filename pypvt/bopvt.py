@@ -4,8 +4,6 @@ import numpy as np
 
 from scipy.interpolate import interp1d
 
-import pypvt
-
 # pylint: disable=invalid-name
 # pylint: disable=too-many-arguments
 # pylint: disable=no-else-return
@@ -41,6 +39,7 @@ class BoPVT:
         pvtg_arr=None,
         sdenw=None,
         pvtw_arr=None,
+        pvt_logger=None,
     ):
 
         self.pvtnum = pvtnum
@@ -55,7 +54,7 @@ class BoPVT:
         self.pvtg = pvtg_arr  # PVTG table containing pres, rv, Bg and Visg )
         self.pvtw = pvtw_arr  # PVTW table containing pref, Bwref, Cw visw_ref and Cv
 
-        self.pvt_logger = pypvt.get_pvt_logger()
+        self.pvt_logger = pvt_logger
         self.calc_rs_warning = False
         self.calc_pbub_warning = False
 

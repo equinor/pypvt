@@ -5,7 +5,6 @@ import pandas as pd
 import numpy as np
 
 from pypvt.bopvt import BoPVT
-import pypvt
 
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-public-methods
@@ -31,8 +30,10 @@ class ElementFluidDescription:
         top_struct=0,
         bottom_struct=10000,
         ecl_case=None,
+        pvt_logger=None,
     ):
 
+        self.pvt_logger = pvt_logger
         self.ecl_case = ecl_case
 
         self.pvtnum = pvtnum
@@ -59,7 +60,7 @@ class ElementFluidDescription:
         self.pdvd_pd = None
         self.pdvd_depth = None
 
-        self.pvt_model = BoPVT(self.pvtnum)
+        self.pvt_model = BoPVT(self.pvtnum, pvt_logger=self.pvt_logger)
 
         self.res_depth = []
         self.res_fluid_type = []
@@ -80,7 +81,6 @@ class ElementFluidDescription:
         self.res_viso = []
         self.res_visg = []
         self.res_visw = []
-        self.pvt_logger = pypvt.get_pvt_logger()
 
     @staticmethod
     def intpol(x, xt, yt, extpol_opt="const", order="ascending"):

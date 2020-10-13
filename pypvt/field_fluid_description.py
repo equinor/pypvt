@@ -1,5 +1,7 @@
 """field_fluid_description module"""
 
+import logging
+
 from typing import List
 import sys
 import copy
@@ -8,9 +10,26 @@ import pandas as pd
 import ecl2df
 
 from pypvt.element_fluid_description import ElementFluidDescription
-import pypvt
 
 # pylint: disable=too-many-branches
+
+
+# A new handler to store "raw" LogRecords instances
+class RecordsListHandler(logging.Handler):
+    """
+    A handler class which stores LogRecord entries in a list
+    """
+
+    def __init__(self, r_list):
+        """
+        Initiate the handler
+        :param records_list: a list to store the LogRecords entries
+        """
+        self.records_list = r_list
+        super().__init__()
+
+    def emit(self, record):
+        self.records_list.append(record)
 
 
 class FieldFluidDescription:
@@ -26,10 +45,19 @@ class FieldFluidDescription:
         self.max_depth = (10000,)
         self.min_depth = (0,)
 
-        self.pvt_logger = pypvt.get_pvt_logger()
+        self._records_list = []
+        self._pvt_logger = logging.getLogger(__name__)
+        self._pvt_logger.addHandler(RecordsListHandler(self._records_list))
 
         if ecl_case:
             self.init_from_ecl(ecl_case)
+
+    @property
+    def logger(self):
+        return self._pvt_logger
+
+    def records_list(self):
+        return self._records_list
 
     @staticmethod
     def _parse_case(case_name):
@@ -85,10 +113,13 @@ class FieldFluidDescription:
                         pvtnum=int(pvtnr),
                         top_struct=top_struct,
                         bottom_struct=bottom_struct,
+                        pvt_logger=self.logger,
                     )
                 else:
                     fluid = ElementFluidDescription(
-                        eqlnum=int(equilnr), pvtnum=int(pvtnr)
+                        eqlnum=int(equilnr),
+                        pvtnum=int(pvtnr),
+                        pvt_logger=self.logger,
                     )
                 fluid.init_from_ecl_df(ecldf_dict)
                 self.fluid_descriptions.append(fluid)
@@ -194,7 +225,7 @@ class FieldFluidDescription:
                     selection.append(record)
             return selection
 
-        records = pypvt.get_pvt_records_list()
+        records = self.records_list()
         print("***********************************************************")
         print("*****             PVT consistency report               ****")
         print("*****                                                  ****")
