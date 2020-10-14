@@ -1,4 +1,7 @@
 """field_fluid_description module"""
+
+import logging
+
 from typing import List
 import sys
 import copy
@@ -8,8 +11,27 @@ import ecl2df
 
 from pypvt.element_fluid_description import ElementFluidDescription
 
-
 # pylint: disable=too-many-branches
+
+
+# A new handler to store "raw" LogRecords instances
+class RecordsListHandler(logging.Handler):
+    """
+    A handler class which stores LogRecord entries in a list
+    """
+
+    def __init__(self, r_list):
+        """
+        Initiate the handler
+        :param records_list: a list to store the LogRecords entries
+        """
+        self.records_list = r_list
+        super().__init__()
+
+    def emit(self, record):
+        self.records_list.append(record)
+
+
 class FieldFluidDescription:
     """A representation of black oil pvt and fluid contacts
     for a collection of fluid systems, ie a field.
@@ -23,8 +45,19 @@ class FieldFluidDescription:
         self.max_depth = (10000,)
         self.min_depth = (0,)
 
+        self._records_list = []
+        self._pvt_logger = logging.getLogger(__name__)
+        self._pvt_logger.addHandler(RecordsListHandler(self._records_list))
+
         if ecl_case:
             self.init_from_ecl(ecl_case)
+
+    @property
+    def logger(self):
+        return self._pvt_logger
+
+    def records_list(self):
+        return self._records_list
 
     @staticmethod
     def _parse_case(case_name):
@@ -80,10 +113,13 @@ class FieldFluidDescription:
                         pvtnum=int(pvtnr),
                         top_struct=top_struct,
                         bottom_struct=bottom_struct,
+                        pvt_logger=self.logger,
                     )
                 else:
                     fluid = ElementFluidDescription(
-                        eqlnum=int(equilnr), pvtnum=int(pvtnr)
+                        eqlnum=int(equilnr),
+                        pvtnum=int(pvtnr),
+                        pvt_logger=self.logger,
                     )
                 fluid.init_from_ecl_df(ecldf_dict)
                 self.fluid_descriptions.append(fluid)
@@ -177,3 +213,41 @@ class FieldFluidDescription:
         ecl2df.equil.df2ecl(
             dframe, keywords=keywords, comments=comments, filename=filename
         )
+
+    def create_consistency_report(self):
+        def filter_records(records, rtype, pvtnum):
+            selection = []
+            for record in records:
+                if (
+                    record.__dict__["levelname"] == rtype
+                    and record.__dict__.get("pvtnum", None) == pvtnum
+                ):
+                    selection.append(record)
+            return selection
+
+        records = self.records_list()
+        print("***********************************************************")
+        print("*****             PVT consistency report               ****")
+        print("*****                                                  ****")
+        print()
+        print(
+            "This model has ",
+            len(self.fluid_descriptions),
+            " active equli regions and ",
+            len(self.inactive_fluid_descriptions),
+            " inactive",
+        )
+        print()
+        for fluid in self.fluid_descriptions:
+            print("***********************************************************")
+            print("EQUIL nr: ", fluid.eqlnum, " PVTNUM:", fluid.pvtnum)
+
+            warnings = filter_records(records, "WARNING", fluid.pvtnum)
+            print("WARNINGS: ", len(warnings))
+            for record in warnings:
+                print("  ", record.__dict__["msg"])
+
+            errors = filter_records(records, "ERROR", fluid.pvtnum)
+            print("ERRORS: ", len(errors))
+            for record in errors:
+                print("  ", record.__dict__["msg"])

@@ -1,6 +1,5 @@
 """ Black-oil PVT module """
 
-
 import numpy as np
 
 from scipy.interpolate import interp1d
@@ -14,8 +13,9 @@ from scipy.interpolate import interp1d
 # pylint: disable=raise-missing-from
 
 # =============================================================================
-class BoPVT:
 
+
+class BoPVT:
     """
     Black oil pvt fluid model for a given fluid PVT region
 
@@ -39,6 +39,7 @@ class BoPVT:
         pvtg_arr=None,
         sdenw=None,
         pvtw_arr=None,
+        pvt_logger=None,
     ):
 
         self.pvtnum = pvtnum
@@ -52,6 +53,10 @@ class BoPVT:
         self.pvto = pvto_arr  # PVTO table containing RS, pres, Bo and Viso )
         self.pvtg = pvtg_arr  # PVTG table containing pres, rv, Bg and Visg )
         self.pvtw = pvtw_arr  # PVTW table containing pref, Bwref, Cw visw_ref and Cv
+
+        self.pvt_logger = pvt_logger
+        self.calc_rs_warning = False
+        self.calc_pbub_warning = False
 
     # ------------------------------------------------------------------------
     def set_PRINT_WARNING(self, print_warning=True):
@@ -103,10 +108,8 @@ class BoPVT:
         required_cols = ["PRESSURE", "OGR", "VOLUMEFACTOR", "VISCOSITY"]
         try:
             df = eql_df[eql_df["PVTNUM"] == self.pvtnum][required_cols]
-        except:
-            raise ValueError(
-                "Required dataframe columns headers are: " + str(required_cols)
-            )
+        except ValueError:
+            print("Required dataframe columns headers are: " + str(required_cols))
 
         self.pvtg = df.to_numpy()
 
@@ -126,10 +129,8 @@ class BoPVT:
         required_cols = ["RS", "PRESSURE", "VOLUMEFACTOR", "VISCOSITY"]
         try:
             df = eql_df[eql_df["PVTNUM"] == self.pvtnum][required_cols]
-        except:
-            raise ValueError(
-                "Required dataframe columns headers are: " + str(required_cols)
-            )
+        except ValueError:
+            print("Required dataframe columns headers are: " + str(required_cols))
 
         self.pvto = df.to_numpy()
 
@@ -155,10 +156,8 @@ class BoPVT:
         ]
         try:
             df = eql_df[eql_df["PVTNUM"] == self.pvtnum][required_cols]
-        except:
-            raise ValueError(
-                "Required dataframe columns headers are: " + str(required_cols)
-            )
+        except ValueError:
+            print("Required dataframe columns headers are: " + str(required_cols))
 
         self.pvtw = df.to_numpy()
 
@@ -197,10 +196,13 @@ class BoPVT:
 
         if pbub > max(pb_tab) or pbub < min(pb_tab):
 
-            # print(
-            #    "\nWARNING: %s of %10.3e outside PVT table interval [%10.3e , %10.3e]"
-            #    % ("Pbub", pbub, min(pb_tab), max(pb_tab))
-            # )
+            msg = "{} of {:6.1f} outside PVT table interval [{:6.1f} , {:6.1f}]".format(
+                "Pbub", pbub, min(pb_tab), max(pb_tab)
+            )
+            if not self.calc_rs_warning:
+                self.pvt_logger.warning(msg, extra={"pvtnum": self.pvtnum})
+                self.calc_rs_warning = True
+                print("\nERROR:", msg)
             raise ValueError("Pbub outside PVTO table interval")
 
         rs = np.interp(pbub, pb_tab, rs_tab)
@@ -228,11 +230,16 @@ class BoPVT:
 
         if rs > max(rs_tab) or rs < min(rs_tab):
 
-            # print(
-            #    "\nWARNING: %s of %10.3e outside PVT table interval [%10.3e , %10.3e]"
-            #    % ("RS", rs, min(rs_tab), max(rs_tab))
-            # )
-            raise ValueError("RS outside PVTO table range")
+            msg = "{} of {:6.2f} outside PVT table interval [{:6.2f} , {:6.2f}]".format(
+                "RS", rs, min(rs_tab), max(rs_tab)
+            )
+
+            if not self.calc_pbub_warning:
+                self.pvt_logger.warning(msg, extra={"pvtnum": self.pvtnum})
+                self.calc_pbub_warning = True
+                print("\nWARNING:", msg)
+
+            # raise ValueError("RS outside PVTO table range")
 
         pbub = np.interp(rs, rs_tab, pb_tab)
 
@@ -823,96 +830,3 @@ class BoPVT:
         visw = bw_visw / bw
 
         return visw
-
-
-## =============================================================================
-# def main():
-#    df_pvto = pd.read_excel("PVT.xlsx", sheet_name="PVTO", index_col=None)
-#
-#    df_density = pd.read_excel("PVT.xlsx", sheet_name="DENSITY", index_col=None)
-#
-#    df_pvtg = pd.read_excel("PVT.xlsx", sheet_name="PVTG", index_col=None)
-#
-#    df_pvtw = pd.read_excel("PVT.xlsx", sheet_name="PVTW", index_col=None)
-#
-#    pvtnum = 1
-#    pvtmod = BoPVT(pvtnum)
-#
-#    pvtmod.set_pvto_from_df(df_pvto)
-#    pvtmod.set_pvtg_from_df(df_pvtg)
-#    pvtmod.set_densities_from_df(df_density)
-#    pvtmod.set_pvtw_from_df(df_pvtw)
-#
-#    pbub = pvtmod.calc_pbub(182)
-#    print("PBUB = ", pbub)
-#
-#    bo = pvtmod.calc_bo(300, rs=182)
-#    print("BO = ", bo)
-#
-#    deno = pvtmod.calc_deno(300, rs=182)
-#    print("Deno = ", deno)
-#
-#    rv = pvtmod.calc_rv(210)
-#    print("Rv =", rv)
-#
-#    pdew = pvtmod.calc_pdew(0.00027601)
-#    print("Pdew =", pdew)
-#
-#    pdew = pvtmod.calc_pdew(1.0)
-#    print("Pdew =", pdew)
-#
-#    bg = pvtmod.calc_bg(200, pdew=125)
-#    print("Bg =", bg)
-#
-#    deng = pvtmod.calc_deng(500)
-#    print("Deng =", deng)
-#
-#    bw = pvtmod.calc_bw(200)
-#    print("Bw 200 =", bw)
-#
-#    bw = pvtmod.calc_bw(400)
-#    print("Bw 400 =", bw)
-#
-#    denw = pvtmod.calc_denw(100)
-#    print("Denw =", denw)
-#
-#    denw = pvtmod.calc_denw(400)
-#    print("Denw =", denw)
-#
-#    visw = pvtmod.calc_visw(600)
-#    print("Visw =", visw)
-#
-#    visg = pvtmod.calc_visg(500)
-#    print("Visg =", visg)
-#
-#    # Initi
-#
-#    rvvd_depth = [3675.0, 3815.0, 4025.0, 4083.3, 4200.0, 4500.0]
-#
-#    rvvd_rv = [5.7182e-04, 7.1485e-04, 9.2321e-04, 1.1350e-03, 1.1350e-03, 1.1350e-03]
-#
-#    rsvd_depth = [3675.0, 3815.0, 4025.0, 4083.3, 4200.0, 4500.0]
-#
-#    rsvd_rs = [300, 290, 202, 203, 200, 200]
-#
-#    fluid_model = FluidModel(
-#        eqlnum=1,
-#        top_grid=3600,
-#        bottom_grid=4500,
-#        woc=4400,
-#        goc=4000,
-#        ref_press=466,
-#        ref_depth=3950,
-#        rsvd_depth=rsvd_depth,
-#        rsvd_rs=rsvd_rs,
-#        rvvd_depth=rvvd_depth,
-#        rvvd_rv=rvvd_rv,
-#        pvt_model=pvtmod,
-#    )
-#
-#    fluid_model.calc_fluid_prop_vs_depth(no_nodes=20)
-#    fluid_model.print_depth_tables()
-#
-#
-# if __name__ == "__main__":
-#    main()

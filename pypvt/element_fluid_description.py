@@ -1,5 +1,4 @@
 """element_fluid_description module"""
-
 import copy
 
 import pandas as pd
@@ -31,8 +30,10 @@ class ElementFluidDescription:
         top_struct=0,
         bottom_struct=10000,
         ecl_case=None,
+        pvt_logger=None,
     ):
 
+        self.pvt_logger = pvt_logger
         self.ecl_case = ecl_case
 
         self.pvtnum = pvtnum
@@ -59,7 +60,7 @@ class ElementFluidDescription:
         self.pdvd_pd = None
         self.pdvd_depth = None
 
-        self.pvt_model = BoPVT(self.pvtnum)
+        self.pvt_model = BoPVT(self.pvtnum, pvt_logger=self.pvt_logger)
 
         self.res_depth = []
         self.res_fluid_type = []
@@ -461,7 +462,8 @@ class ElementFluidDescription:
         # Calculate properties from REFERENCE depth to TOP reservoir
         # ---------------------------------------------------------------------
 
-        GD = 0.0981 / 1000.0  #  [m]*[kg/m3] -> [bar]
+        #  [m]*[kg/m3] -> [bar]
+        GD = 0.0981 / 1000.0
 
         goc = self.goc
         woc = self.owc
@@ -800,10 +802,16 @@ class ElementFluidDescription:
             # Oil and gas density at GOC
             if self.res_deno[i] <= self.res_deng[i]:
 
-                print("\nERROR - Inconcsistent phase densities at GOC:")
-                print("%s : %8.2f" % ("Oil density (kg/m3)", self.res_deno[i]))
-                print("%s : %8.2f" % ("Gas density (kg/m3)", self.res_deng[i]))
-
+                msg = (
+                    "Inconcsistent phase densities at GOC:" "{} : {:8.2f}  {} : {:8.2f}"
+                ).format(
+                    "Oil density (kg/m3)",
+                    self.res_deno[i],
+                    "Gas density (kg/m3)",
+                    self.res_deng[i],
+                )
+                print("\nERROR - ", msg)
+                self.pvt_logger.error(msg, extra={"pvtnum": self.pvtnum})
                 no_fatal_errors += 1
 
             # Psat > press
@@ -811,12 +819,15 @@ class ElementFluidDescription:
                 self.res_pbub[i] > self.res_pres[i] + tol_pres
                 or self.res_pdew[i] > self.res_pres[i] + tol_pres
             ):
+                msg = (
+                    "Psat higher than pressure gas-oil-contact:\n"
+                    "Res. pressure (bar)   : {:8.2f}\n"
+                    "Bubble-point pressure : {:8.2f}\n"
+                    "Dew-point pressure    : {:8.2f}\n"
+                ).format(self.res_pres[i], self.res_pbub[i], self.res_pdew[i])
 
-                print("\nERROR - Psat higher than pressure gas-oil-contact:")
-                print("%s : %8.2f" % ("Res. pressure (bar)", self.res_pres[i]))
-                print("%s : %8.2f" % ("Bubble-point pressure", self.res_pbub[i]))
-                print("%s : %8.2f" % ("Dew-point pressure", self.res_pdew[i]))
-
+                print("\nERROR - ", msg)
+                self.pvt_logger.error(msg, extra={"pvtnum": self.pvtnum})
                 no_errors += 1
 
             # undersaturated GOC
@@ -825,11 +836,15 @@ class ElementFluidDescription:
                 or self.res_pdew[i] + tol_pres < self.res_pres[i]
             ):
 
-                print("\nWARNING - Undersaturated gas-oil-contact:")
-                print("%s : %8.2f" % ("Res. pressure (bar)", self.res_pres[i]))
-                print("%s : %8.2f" % ("Bubble-point pressure", self.res_pbub[i]))
-                print("%s : %8.2f" % ("Dew-point pressure", self.res_pdew[i]))
+                msg = (
+                    "Undersaturated gas-oil-contact:\n"
+                    "Res. pressure (bar)   : {:8.2f}\n"
+                    "Bubble-point pressure : {:8.2f}\n"
+                    "Dew-point pressure : {:8.2f}\n"
+                ).format(self.res_pres[i], self.res_pbub[i], self.res_pdew[i])
 
+                print("\nWARNING - ", msg)
+                self.pvt_logger.warning(msg, extra={"pvtnum": self.pvtnum})
                 no_warnings += 1
 
         # Check consistency for all depth nodes
@@ -848,41 +863,48 @@ class ElementFluidDescription:
 
             if d < goc and xi > xi_1:
 
-                print(
-                    "ERROR: Non-monotinic dew-points\
-                       in depth interval [%6.1d - %6.1d]"
-                    % (d_1, d)
-                )
+                msg = (
+                    "Non-monotinic dew-points " "in depth interval [{:6.1f} - {:6.1f}]"
+                ).format(d_1, d)
+
+                print("\nERROR: ", msg)
+                self.pvt_logger.error(msg, extra={"pvtnum": self.pvtnum})
 
                 no_fatal_errors += 1
 
             if d > goc and xi > xi_1:
 
-                print(
-                    "ERROR: Non-monotinic bubble-points\
-                       in depth interval [%6.1d - %6.1d]"
-                    % (d_1, d)
-                )
+                msg = (
+                    "Non-monotinic bubble-points "
+                    "in depth interval [{:6.1f} - {:6.1f}]"
+                ).format(d_1, d)
+
+                print("\nERROR: ", msg)
+                self.pvt_logger.error(msg, extra={"pvtnum": self.pvtnum})
 
                 no_fatal_errors += 1
 
             if xi > self.res_pres[i]:
 
-                print(
-                    "ERROR: Sat. pressure %4.2f > res. pressure %4.2f \
-                       in depth interval [%6.1d - %6.1d]"
-                    % (abs(dxdz), max_psat_grad, d_1, d)
-                )
+                msg = (
+                    "Sat. pressure {:4.2f} > res. pressure {:4.2f} "
+                    "in depth interval [{:6.1f} - {:6.1f}]"
+                ).format(abs(dxdz), max_psat_grad, d_1, d)
+
+                print("\nERROR: ", msg)
+                self.pvt_logger.error(msg, extra={"pvtnum": self.pvtnum})
 
                 no_errors += 1
 
             if abs(dxdz) > max_psat_grad:
 
-                print(
-                    "WARNNING: Bubble-point gradient %4.2f > %4.2f \
-                       in depth interval [%6.1d - %6.1d]"
-                    % (abs(dxdz), max_psat_grad, d_1, d)
-                )
+                msg = (
+                    "Bubble-point gradient {:4.2f} > {:4.2f} "
+                    "in depth interval [{:6.1f} - {:6.1f}]"
+                ).format(abs(dxdz), max_psat_grad, d_1, d)
+
+                print("\nWARNNING: ", msg)
+                self.pvt_logger.warning(msg, extra={"pvtnum": self.pvtnum})
 
                 no_warnings += 1
 
