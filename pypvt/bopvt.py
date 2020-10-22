@@ -107,7 +107,7 @@ class BoPVT:
         try:
             df = eql_df[eql_df["PVTNUM"] == self.pvtnum][required_cols]
         except ValueError:
-            print ("Required dataframe columns headers are: " + str(required_cols))
+            print("Required dataframe columns headers are: " + str(required_cols))
 
         self.pvtg = df.to_numpy()
 
@@ -128,7 +128,7 @@ class BoPVT:
         try:
             df = eql_df[eql_df["PVTNUM"] == self.pvtnum][required_cols]
         except ValueError:
-            print ("Required dataframe columns headers are: " + str(required_cols))
+            print("Required dataframe columns headers are: " + str(required_cols))
 
         self.pvto = df.to_numpy()
 
@@ -362,7 +362,6 @@ class BoPVT:
                 raise ValueError("Saturation pressure outside PVTO table range")
 
             viso = np.interp(pres, pb_tab, sat_viso_tab)
-
 
         # ---------------------------------------------------------------------
         # Return undersaturated viso
@@ -709,7 +708,6 @@ class BoPVT:
             bg = self.calc_bg(pres, **kwargs)
 
             visg = 1.0 / (inv_bv * bg)
-
 
         # ---------------------------------------------------------------------
         # Return undersaturated Visg
