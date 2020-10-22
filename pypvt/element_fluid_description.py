@@ -1,8 +1,11 @@
 """element_fluid_description module"""
+import os
 import copy
 
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+
 
 from pypvt.bopvt import BoPVT
 
@@ -555,7 +558,8 @@ class ElementFluidDescription:
 
             if abs(d_next - goc) < delta_d:
                 d_next = goc
-            if abs(d_next - woc) < delta_d:
+
+            elif abs(d_next - woc) < delta_d:
                 d_next = woc
 
             # Update new node pressure
@@ -590,9 +594,11 @@ class ElementFluidDescription:
 
         d = self.ref_depth
         d_next = d + delta_d
+
         if abs(d_next - goc) < delta_d:
             d_next = goc
-        if abs(d_next - woc) < delta_d:
+
+        elif abs(d_next - woc) < delta_d:
             d_next = woc
 
         p = self.ref_press + GD * self.res_den[-1] * (d_next - d)
@@ -633,7 +639,7 @@ class ElementFluidDescription:
             visw = self.pvt_model.calc_visw(p)
 
             # Determine correct phase
-            if d > goc:
+            if d < goc:
                 fluid_type = "gas"
                 psat = pdew
                 gor = 1.0 / rv
@@ -677,13 +683,124 @@ class ElementFluidDescription:
 
             if abs(d_next - goc) < delta_d * 0.9:
                 d_next = goc
-            if abs(d_next - woc) < delta_d * 0.9:
+
+            elif abs(d_next - woc) < delta_d * 0.9:
                 d_next = woc
 
             # Update new node pressure
             p = p + GD * den * (d_next - d)
 
             d = d_next
+
+    # -----------------------------------------------------------------------------
+    def plot_depth_tables(self, plot_dir="./diagnostic_plots/"):
+        """
+        Generates diagnostic plots of fluid properties vs. depth and
+        the corresponding PVT tables
+
+        """
+
+        if not os.path.isdir(plot_dir):
+            os.makedirs(plot_dir)
+
+        if len(self.res_depth) < 2:
+            raise ValueError("Fluid property depth tables not set")
+
+        plt.figure(figsize=(15, 10))
+
+        # --------------------------------------------------------------
+        # Fig 1-1: Saturation pressure and reservoir pressure vs depth
+        # --------------------------------------------------------------
+        plt.subplot(2, 2, 1)
+
+        x_min = min(min(self.res_pres), min(self.res_psat))
+        x_max = max(max(self.res_pres), max(self.res_psat))
+
+        pdew = [self.pvt_model.calc_pdew(rv) for rv in self.rvvd_rv]
+        pbub = [self.pvt_model.calc_pbub(rs) for rs in self.rsvd_rs]
+
+        plt.plot(
+            self.res_pres, self.res_depth, "-x", color="grey", label="Pres", linewidth=2
+        )
+        plt.plot(
+            self.res_psat,
+            self.res_depth,
+            "-o",
+            color="black",
+            label="Psat",
+            linewidth=2,
+        )
+        plt.plot(pbub, self.rsvd_depth, "o", color="green", label="Pbub", linewidth=2)
+        plt.plot(pdew, self.rvvd_depth, "o", color="orange", label="Pdew", linewidth=2)
+
+        plt.plot([x_min, x_max], [self.goc, self.goc], "r-.", label="GOC", linewidth=3)
+        plt.plot([x_min, x_max], [self.owc, self.owc], "b--", label="OWC", linewidth=3)
+
+        plt.ylim(min(self.res_depth), min(self.owc + 10, max(self.res_depth)))
+
+        plt.gca().invert_yaxis()
+        plt.legend()
+        plt.title("EQLNUM " + str(self.eqlnum) + " - Pressure and saturation pressure")
+
+        # --------------------------------------------------------------
+        # Fig 1-2: GOR vs depth
+        # --------------------------------------------------------------
+        plt.subplot(2, 2, 2)
+        x_min = min(min(self.res_gor), min(self.res_gor))
+        x_max = max(max(self.res_gor), max(self.res_gor))
+        inv_rv = [1 / rv for rv in self.rvvd_rv]
+
+        plt.plot(
+            self.res_gor, self.res_depth, "-o", color="black", label="GOR", linewidth=2
+        )
+        plt.plot(
+            self.rsvd_rs, self.rsvd_depth, "o", color="green", label="RSVD", linewidth=2
+        )
+        plt.plot(
+            inv_rv, self.rvvd_depth, "o", color="orange", label="RVVD", linewidth=2
+        )
+        plt.plot([x_min, x_max], [self.goc, self.goc], "r-.", label="GOC", linewidth=3)
+        plt.plot([x_min, x_max], [self.owc, self.owc], "b--", label="OWC", linewidth=3)
+        plt.ylim(min(self.res_depth), min(self.owc + 10, max(self.res_depth)))
+
+        plt.gca().invert_yaxis()
+        plt.legend()
+        plt.title("EQLNUM " + str(self.eqlnum) + " - GOR (Rs and 1/Rv)")
+
+        # --------------------------------------------------------------
+        # Fig 2-1: PVTO table
+        # --------------------------------------------------------------
+        plt.subplot(2, 2, 3)
+
+        pvto = self.pvt_model.pvto
+        rs_tab = np.unique(pvto[:, 0], axis=0)
+        pb_tab = [self.pvt_model.calc_pbub(rs) for rs in rs_tab]
+
+        plt.plot(pb_tab, rs_tab, "-o", color="black", label="PVTO", linewidth=2)
+        plt.xlabel("Pressure, bar")
+        plt.ylabel("Rs, Sm3/Sm3")
+        plt.legend()
+        plt.title("PVTNUM " + str(self.pvtnum) + " -  PVTO")
+
+        # --------------------------------------------------------------
+        # Fig 2-2: PVTG table (NB: Plotting GOR as 1/Rv instead of rv)
+        # --------------------------------------------------------------
+        pvtg = self.pvt_model.pvtg
+        pd_tab = np.unique(pvtg[:, 0], axis=0)
+        gor_tab = [1.0 / self.pvt_model.calc_rv(p) for p in pd_tab]
+
+        plt.subplot(2, 2, 4)
+        plt.plot(pd_tab, gor_tab, "-o", color="black", label="PVTG", linewidth=2)
+        plt.xlabel("Pressure, bar")
+        plt.ylabel("1/Rv, Sm3/Sm3")
+        plt.legend()
+        plt.title("PVTNUM " + str(self.pvtnum) + " -  PVTG")
+
+        plt.savefig(plot_dir + "eqnum_" + str(self.eqlnum) + ".png")
+        # plt.show()
+        plt.close()
+
+        return ()
 
     # -----------------------------------------------------------------------------
     def print_depth_tables(self):
@@ -861,7 +978,7 @@ class ElementFluidDescription:
             xi = self.res_psat[i]
             dxdz = (xi - xi_1) / (d - d_1)
 
-            if d < goc and xi > xi_1:
+            if d < goc and xi < xi_1:
 
                 msg = (
                     "Non-monotinic dew-points " "in depth interval [{:6.1f} - {:6.1f}]"
@@ -899,7 +1016,7 @@ class ElementFluidDescription:
             if abs(dxdz) > max_psat_grad:
 
                 msg = (
-                    "Bubble-point gradient {:4.2f} > {:4.2f} "
+                    "Saturation pressure point gradient {:4.2f} > {:4.2f} "
                     "in depth interval [{:6.1f} - {:6.1f}]"
                 ).format(abs(dxdz), max_psat_grad, d_1, d)
 
