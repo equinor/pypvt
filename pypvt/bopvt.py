@@ -6,11 +6,9 @@ from scipy.interpolate import interp1d
 
 # pylint: disable=invalid-name
 # pylint: disable=too-many-arguments
-# pylint: disable=no-else-return
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-branches
 # pylint: disable=too-many-statements
-# pylint: disable=raise-missing-from
 
 # =============================================================================
 
@@ -29,7 +27,7 @@ class BoPVT:
 
     PRINT_WARNING = False  # Prints warnings input is outside PVT table range
 
-    # ------------------------------------------------------------------------
+    # -|-----------------------------------------------------------------------
     def __init__(
         self,
         pvtnum=None,
@@ -109,7 +107,7 @@ class BoPVT:
         try:
             df = eql_df[eql_df["PVTNUM"] == self.pvtnum][required_cols]
         except ValueError:
-            print("Required dataframe columns headers are: " + str(required_cols))
+            print ("Required dataframe columns headers are: " + str(required_cols))
 
         self.pvtg = df.to_numpy()
 
@@ -130,7 +128,7 @@ class BoPVT:
         try:
             df = eql_df[eql_df["PVTNUM"] == self.pvtnum][required_cols]
         except ValueError:
-            print("Required dataframe columns headers are: " + str(required_cols))
+            print ("Required dataframe columns headers are: " + str(required_cols))
 
         self.pvto = df.to_numpy()
 
@@ -282,8 +280,6 @@ class BoPVT:
 
             bo = np.interp(pres, pb_tab, sat_bo_tab)
 
-            return bo
-
         # ---------------------------------------------------------------------
         # Return undersaturated BO
         # ---------------------------------------------------------------------
@@ -327,7 +323,7 @@ class BoPVT:
 
             bo = np.interp(rs, rs_tab, bo_tab)
 
-            return bo
+        return bo
 
     # -------------------------------------------------------------------------
     def calc_viso(self, pres, **kwargs):
@@ -367,7 +363,6 @@ class BoPVT:
 
             viso = np.interp(pres, pb_tab, sat_viso_tab)
 
-            return viso
 
         # ---------------------------------------------------------------------
         # Return undersaturated viso
@@ -412,7 +407,7 @@ class BoPVT:
 
             viso = np.interp(rs, rs_tab, viso_tab)
 
-            return viso
+        return viso
 
     # -------------------------------------------------------------------------
     def calc_deno(self, pres, **kwargs):
@@ -453,8 +448,6 @@ class BoPVT:
     # -------------------------------------------------------------------------
     def calc_rv(self, pdew):
         """
-        Under construction - Need to solve undersaturated entries
-
         Returns rv (solution oil-gas-ratio) for given dew-point pressure
 
         Based on linear interpolation in PVTG table.
@@ -493,8 +486,6 @@ class BoPVT:
     # -------------------------------------------------------------------------
     def calc_pdew(self, rv):
         """
-        Under construction - Need to solve undersaturated table entries
-
         Returns pdew for given solution oil-gas ratio
 
         Based on linear interpolation in PVTG table.
@@ -524,7 +515,14 @@ class BoPVT:
             #    "\nWARNING: %s of %10.3e outside PVT table interval [%10.3e , %10.3e]"
             #    % ("Rv", rv, min(rv_tab), max(rv_tab))
             # )
-            raise ValueError("Rv outside PVTG table range")
+
+            print("UNCOMMENT?")
+            if rv > max(rv_tab):
+                rv = max(rv_tab)
+            if rv < min(rv_tab):
+                rv = min(rv_tab)
+
+            # raise ValueError("Rv outside PVTG table range")
 
         f = interp1d(rv_tab, pd_tab)
         pdew = f(rv)
@@ -574,8 +572,6 @@ class BoPVT:
             inv_bg = np.interp(pres, pd_tab, inv_bg_tab)
             bg = 1.0 / inv_bg
 
-            return bg
-
         # ---------------------------------------------------------------------
         # Return undersaturated Bg
         # ---------------------------------------------------------------------
@@ -616,8 +612,9 @@ class BoPVT:
                 ]  # pick up all rvs for given pressure
                 inv_bgt = [1.0 / r[2] for r in pvtg if r[0] == p]
 
-                if len(rvt) < 1:
+                if len(rvt) <= 1:
                     inv_bg = inv_bgt[0]
+
                 else:
                     f = interp1d(rvt, inv_bgt)
                     x = max(min(rvt), rv)
@@ -629,7 +626,7 @@ class BoPVT:
             inv_bg = np.interp(pres, p_tab, inv_bg_tab)
             bg = 1.0 / inv_bg
 
-            return bg
+        return bg
 
     # -------------------------------------------------------------------------
     def calc_deng(self, pres, **kwargs):
@@ -713,10 +710,9 @@ class BoPVT:
 
             visg = 1.0 / (inv_bv * bg)
 
-            return visg
 
         # ---------------------------------------------------------------------
-        # Return undersaturated Bg
+        # Return undersaturated Visg
         # ---------------------------------------------------------------------
         else:
 
@@ -753,7 +749,7 @@ class BoPVT:
                 rvt = [r[1] for r in pvtg if r[0] == p]
                 inv_bvt = [1.0 / (r[2] * r[3]) for r in pvtg if r[0] == p]
 
-                if len(rvt) < 1:
+                if len(rvt) <= 1:
                     inv_bv = inv_bvt[0]
 
                 else:
@@ -770,7 +766,7 @@ class BoPVT:
 
             visg = 1.0 / (inv_bv * bg)
 
-            return visg
+        return visg
 
     # -------------------------------------------------------------------------
     def calc_bw(self, pres):
