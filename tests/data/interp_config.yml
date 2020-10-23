@@ -1,0 +1,20 @@
+rsvd_files:
+  -base: /path/to/base_rs.inc
+  -opt: /path/to/opt_rs.inc
+  -pes: /path/to/pes_rs.inc
+
+rvvd_files:
+  -base: /path/to/base_rv.inc
+  -opt: /path/to/opt_rv.inc
+  -pes: /path/to/pes_rv.inc
+
+eqil_file: /path/to/updated/equil.inc
+  
+Output: updated_rsvd.inc
+
+interpolation:
+  -equilnums: []
+  -param: 0.54
+interpolation:
+  -equilnums: [1,4,72]
+  -param: -0.2 

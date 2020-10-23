@@ -1,0 +1,13 @@
+rsvd_files:
+  -base: /path/to/base_rs.inc
+  -opt: /path/to/opt_rs.inc
+  -pes: /path/to/pes_rs.inc
+
+rvvd_files:
+  -base: /path/to/base_rv.inc
+  -opt: /path/to/opt_rv.inc
+  -pes: /path/to/pes_rv.inc
+
+eqil_file: /path/to/updated/equil.inc
+  
+Output: updated_rsvd.inc
