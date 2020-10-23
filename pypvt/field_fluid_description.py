@@ -37,69 +37,113 @@ class FieldFluidDescription:
     for a collection of fluid systems, ie a field.
     """
 
-    def __init__(self, ecl_case=None):
+    @staticmethod
+    def _parse_ecl_case(case_name):
+        eclfiles = ecl2df.EclFiles(case_name)
+        df_dict = {}
+        try:
+            df_dict["GRID"] = ecl2df.grid.df(eclfiles)
+        except KeyError:
+            print("No grid found, exiting")
+            sys.exit()
+
+        df_dict["PVT"] = ecl2df.pvt.df(eclfiles)
+        df_dict["EQUIL"] = ecl2df.equil.df(eclfiles, keywords="EQUIL")
+        df_dict["RSVD"] = ecl2df.equil.df(eclfiles, keywords="RSVD")
+        df_dict["RVVD"] = ecl2df.equil.df(eclfiles, keywords="RVVD")
+        df_dict["PBVD"] = ecl2df.equil.df(eclfiles, keywords="PBVD")
+        df_dict["PDVD"] = ecl2df.equil.df(eclfiles, keywords="PDVD")
+
+        return df_dict
+
+    @staticmethod
+    def _kw_from_files(case_name, kw_dict, ntequil):
+        kw_dict_from_file = {}
+        for key in kw_dict.keys():
+            if key == "EQUIL":
+                eclfiles = ecl2df.EclFiles(case_name)
+                deck = eclfiles.get_ecldeck()
+                fake_data = ""
+                if "OIL" in deck:
+                    fake_data += """
+                    OIL
+                    """
+                if "GAS" in deck:
+                    fake_data += """
+                    GAS
+                    """
+                if "WATER" in deck:
+                    fake_data += """
+                    WATER
+                    """
+                df = ecl2df.equil.df(
+                    fake_data + open(kw_dict[key], "r").read(),
+                    keywords="EQUIL",
+                    ntequl=ntequil,
+                )
+                assert "KEYWORD" in df, (
+                    "Unable to read " + key + " kw from file: " + str(kw_dict[key])
+                )
+                kw_dict_from_file[key] = df
+
+            elif key in ["RSVD", "RVVD", "PBVD", "PDVD"]:
+                df = ecl2df.equil.df(
+                    open(kw_dict[key], "r").read(), keywords=key, ntequl=ntequil
+                )
+                assert "KEYWORD" in df, (
+                    "Unable to read " + key + " kw from file: " + str(kw_dict[key])
+                )
+                kw_dict_from_file[key] = df
+            elif key == "PVT":
+                df = ecl2df.pvt.df(eclfiles)
+                assert "KEYWORD" in df, (
+                    "Unable to read " + key + " kw from file: " + str(kw_dict[key])
+                )
+                kw_dict_from_file[key] = df
+            else:
+                raise KeyError("KW " + key + " not supported")
+
+        return kw_dict_from_file
+
+    def __init__(self, ecl_case, kwfile_dict):
         self.fluid_descriptions = list([])
         self.inactive_fluid_descriptions = list([])
         self.fluid_index = {}
         self.inacive_fluid_index = {}
-        self.max_depth = (10000,)
-        self.min_depth = (0,)
 
         self._records_list = []
         self._pvt_logger = logging.getLogger(__name__)
         self._pvt_logger.addHandler(RecordsListHandler(self._records_list))
 
+        eclkwdf_dict = {}
         if ecl_case:
-            self.init_from_ecl(ecl_case)
+            eclkwdf_dict = self._parse_ecl_case(ecl_case)
 
-    @property
-    def logger(self):
-        return self._pvt_logger
-
-    def records_list(self):
-        return self._records_list
-
-    @staticmethod
-    def _parse_case(case_name):
-        eclfiles = ecl2df.EclFiles(case_name)
-        dataframes = {}
-
-        dataframes["GRID"] = ecl2df.grid.df(eclfiles)
-        dataframes["PVT"] = ecl2df.pvt.df(eclfiles)
-        dataframes["EQUIL"] = ecl2df.equil.df(eclfiles, keywords="EQUIL")
-        dataframes["RSVD"] = ecl2df.equil.df(eclfiles, keywords="RSVD")
-        dataframes["RVVD"] = ecl2df.equil.df(eclfiles, keywords="RVVD")
-        dataframes["PBVD"] = ecl2df.equil.df(eclfiles, keywords="PBVD")
-        dataframes["PDVD"] = ecl2df.equil.df(eclfiles, keywords="PDVD")
-
-        return dataframes
-
-    def init_from_ecl(self, case):
-        ecldf_dict = FieldFluidDescription._parse_case(case)
-
-        grid = None
-        try:
-            grid = ecldf_dict["GRID"]
-        except KeyError:
-            print("No grid found, exiting")
-            sys.exit()
+        if kwfile_dict:
+            ntequl = len(eclkwdf_dict["EQUIL"]["EQLNUM"].unique())
+            eclkwdf_dict = {
+                **eclkwdf_dict,
+                **self._kw_from_files(ecl_case, kwfile_dict, ntequl),
+            }
 
         top_struct = None
         bottom_struct = None
-        if ecldf_dict["GRID"] is not None:
+        grid = None
+        if eclkwdf_dict["GRID"] is not None:
+            grid = eclkwdf_dict["GRID"]
             top_struct = grid["Z"].min()
             bottom_struct = grid["Z"].max()
 
         pvt = None
         try:
-            pvt = ecldf_dict["PVT"]
+            pvt = eclkwdf_dict["PVT"]
         except KeyError:
             print("No pvt found, exiting")
             sys.exit()
 
         equil = None
         try:
-            equil = ecldf_dict["EQUIL"]
+            equil = eclkwdf_dict["EQUIL"]
         except KeyError:
             print("No equil found, exiting")
             sys.exit()
@@ -121,7 +165,7 @@ class FieldFluidDescription:
                         pvtnum=int(pvtnr),
                         pvt_logger=self.logger,
                     )
-                fluid.init_from_ecl_df(ecldf_dict)
+                fluid.init_from_ecl_df(eclkwdf_dict)
                 self.fluid_descriptions.append(fluid)
                 self.fluid_index[int(equilnr)] = fluid_index
                 fluid_index += 1
@@ -134,10 +178,17 @@ class FieldFluidDescription:
             fluid = ElementFluidDescription(
                 eqlnum=int(equilnr), pvtnum=len(pvt["PVTNUM"].unique())
             )
-            fluid.init_from_ecl_df(ecldf_dict)
+            fluid.init_from_ecl_df(eclkwdf_dict)
             self.inactive_fluid_descriptions.append(fluid)
             self.inacive_fluid_index[int(equilnr)] = fluid_index
             fluid_index += 1
+
+    @property
+    def logger(self):
+        return self._pvt_logger
+
+    def records_list(self):
+        return self._records_list
 
     def validate_description(self):
         """
