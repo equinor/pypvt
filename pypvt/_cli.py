@@ -15,16 +15,14 @@ def pvt_consistency_check(args: argparse.Namespace) -> None:
     """
 
     fluid_description = FieldFluidDescription(ecl_case=args.ecl_case, kwfile_dict={})
+    fluid_description.validate_description()
 
-    print(fluid_description.validate_description())
-    fnr = 0
+    # fnr = 0
     for fluid in fluid_description.fluid_descriptions:
         fluid.calc_fluid_prop_vs_depth(no_nodes=args.nodes)
         fluid.inplace_report()
         fluid.pvt_gradient_check()
-        if fnr > 0:
-            break
-        fnr += 1
+        # fnr += 1
     fluid_description.create_consistency_report()
 
 
