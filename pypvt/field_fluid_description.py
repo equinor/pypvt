@@ -10,8 +10,10 @@ import pandas as pd
 import ecl2df
 
 from pypvt.element_fluid_description import ElementFluidDescription
+from pypvt.bopvt import BoPVT
 
 # pylint: disable=too-many-branches
+# pylint: disable=too-many-locals
 
 
 # A new handler to store "raw" LogRecords instances
@@ -126,13 +128,18 @@ class FieldFluidDescription:
                 **self._kw_from_files(ecl_case, kwfile_dict, ntequl),
             }
 
+        grid = None
         top_struct = None
         bottom_struct = None
-        grid = None
-        if eclkwdf_dict["GRID"] is not None:
+
+        try:
             grid = eclkwdf_dict["GRID"]
             top_struct = grid["Z"].min()
             bottom_struct = grid["Z"].max()
+
+        except KeyError:
+            print("No grid found, exiting")
+            sys.exit()
 
         pvt = None
         try:
@@ -150,21 +157,21 @@ class FieldFluidDescription:
 
         fluid_index = 0
         for pvtnr in pvt["PVTNUM"].unique():
+            pvt_model = BoPVT(pvtnr, pvt_logger=self.logger)
+            pvt_model.init_from_ecl_df(eclkwdf_dict)
+
             for equilnr in grid[grid["PVTNUM"] == pvtnr]["EQLNUM"].unique():
-                if grid is not None:
-                    fluid = ElementFluidDescription(
-                        eqlnum=int(equilnr),
-                        pvtnum=int(pvtnr),
-                        top_struct=top_struct,
-                        bottom_struct=bottom_struct,
-                        pvt_logger=self.logger,
-                    )
-                else:
-                    fluid = ElementFluidDescription(
-                        eqlnum=int(equilnr),
-                        pvtnum=int(pvtnr),
-                        pvt_logger=self.logger,
-                    )
+                # top_struct = grid[grid["EQLNUM"] == equilnr]["Z"].min()
+                # bottom_struct = grid[grid["EQLNUM"] == equilnr]["Z"].max()
+
+                fluid = ElementFluidDescription(
+                    eqlnum=int(equilnr),
+                    pvtnum=int(pvtnr),
+                    pvt_model=pvt_model,
+                    top_struct=top_struct,
+                    bottom_struct=bottom_struct,
+                    pvt_logger=self.logger,
+                )
                 fluid.init_from_ecl_df(eclkwdf_dict)
                 self.fluid_descriptions.append(fluid)
                 self.fluid_index[int(equilnr)] = fluid_index
@@ -178,7 +185,6 @@ class FieldFluidDescription:
             fluid = ElementFluidDescription(
                 eqlnum=int(equilnr), pvtnum=len(pvt["PVTNUM"].unique())
             )
-            fluid.init_from_ecl_df(eclkwdf_dict)
             self.inactive_fluid_descriptions.append(fluid)
             self.inacive_fluid_index[int(equilnr)] = fluid_index
             fluid_index += 1

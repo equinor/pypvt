@@ -7,8 +7,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-from pypvt.bopvt import BoPVT
-
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-public-methods
 # pylint: disable=too-many-branches
@@ -17,6 +15,7 @@ from pypvt.bopvt import BoPVT
 # pylint: disable=invalid-name
 # pylint: disable=too-many-locals
 # pylint: disable=expression-not-assigned
+# pylint: disable=too-many-arguments
 
 
 class ElementFluidDescription:
@@ -30,6 +29,7 @@ class ElementFluidDescription:
         self,
         eqlnum=0,
         pvtnum=0,
+        pvt_model=None,
         top_struct=0,
         bottom_struct=10000,
         ecl_case=None,
@@ -63,7 +63,7 @@ class ElementFluidDescription:
         self.pdvd_pd = None
         self.pdvd_depth = None
 
-        self.pvt_model = BoPVT(self.pvtnum, pvt_logger=self.pvt_logger)
+        self.pvt_model = pvt_model
 
         self.res_depth = []
         self.res_fluid_type = []
@@ -175,13 +175,10 @@ class ElementFluidDescription:
             (pdvd_df["EQLNUM"] == self.eqlnum) & (pdvd_df["PD"].notnull())
         ]["Z"].to_numpy()
 
-    def init_pvt_from_df(self, pvt_df):
-        """
-        Set pvt, from an ecl2df.equil_df object
-        """
-        raise NotImplementedError
-
     def init_from_ecl_df(self, df_dict):
+        """
+        Initialize the equil tables
+        """
         if not df_dict["EQUIL"].empty:
             self.init_equil_from_df(df_dict["EQUIL"])
 
@@ -196,52 +193,6 @@ class ElementFluidDescription:
 
         if not df_dict["PDVD"].empty:
             self.init_pdvd_from_df(df_dict["PDVD"])
-
-        if not df_dict["PVT"].empty:
-            pvt_df = df_dict["PVT"]
-
-            if "PVTO" in pvt_df["KEYWORD"].unique():
-                self.pvt_model.set_pvto_from_df(
-                    pvt_df[pvt_df["KEYWORD"] == "PVTO"][
-                        ["RS", "PRESSURE", "VOLUMEFACTOR", "VISCOSITY", "PVTNUM"]
-                    ]
-                )
-            else:
-                raise ValueError("PVTO not found in PVT dataframe")
-
-            if "PVTG" in pvt_df["KEYWORD"].unique():
-                self.pvt_model.set_pvtg_from_df(
-                    pvt_df[pvt_df["KEYWORD"] == "PVTG"][
-                        ["PRESSURE", "OGR", "VOLUMEFACTOR", "VISCOSITY", "PVTNUM"]
-                    ]
-                )
-            else:
-                raise ValueError("PVTG not found in PVT dataframe")
-
-            if "PVTW" in pvt_df["KEYWORD"].unique():
-                self.pvt_model.set_pvtw_from_df(
-                    pvt_df[pvt_df["KEYWORD"] == "PVTW"][
-                        [
-                            "PRESSURE",
-                            "VOLUMEFACTOR",
-                            "COMPRESSIBILITY",
-                            "VISCOSITY",
-                            "VISCOSIBILITY",
-                            "PVTNUM",
-                        ]
-                    ]
-                )
-            else:
-                raise ValueError("PVTW not found in PVT dataframe")
-
-            if "DENSITY" in pvt_df["KEYWORD"].unique():
-                self.pvt_model.set_densities_from_df(
-                    pvt_df[pvt_df["KEYWORD"] == "DENSITY"][
-                        ["OILDENSITY", "GASDENSITY", "WATERDENSITY", "PVTNUM"]
-                    ]
-                )
-            else:
-                raise ValueError("DENSITY not found in PVT dataframe")
 
     def validate_description(self):
         # pylint: disable=too-many-return-statements

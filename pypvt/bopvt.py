@@ -9,6 +9,7 @@ from scipy.interpolate import interp1d
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-branches
 # pylint: disable=too-many-statements
+# pylint: disable=too-many-public-methods
 
 # =============================================================================
 
@@ -72,6 +73,59 @@ class BoPVT:
         Set pvtnum
         """
         self.pvtnum = pvtnum
+
+    # ------------------------------------------------------------------------
+    def init_from_ecl_df(self, df_dict):
+
+        """
+        Initialize the BoPVT instance from df from ecl2df
+        """
+
+        if not df_dict["PVT"].empty:
+            pvt_df = df_dict["PVT"]
+
+            if "PVTO" in pvt_df["KEYWORD"].unique():
+                self.set_pvto_from_df(
+                    pvt_df[pvt_df["KEYWORD"] == "PVTO"][
+                        ["RS", "PRESSURE", "VOLUMEFACTOR", "VISCOSITY", "PVTNUM"]
+                    ]
+                )
+            else:
+                raise ValueError("PVTO not found in PVT dataframe")
+
+            if "PVTG" in pvt_df["KEYWORD"].unique():
+                self.set_pvtg_from_df(
+                    pvt_df[pvt_df["KEYWORD"] == "PVTG"][
+                        ["PRESSURE", "OGR", "VOLUMEFACTOR", "VISCOSITY", "PVTNUM"]
+                    ]
+                )
+            else:
+                raise ValueError("PVTG not found in PVT dataframe")
+
+            if "PVTW" in pvt_df["KEYWORD"].unique():
+                self.set_pvtw_from_df(
+                    pvt_df[pvt_df["KEYWORD"] == "PVTW"][
+                        [
+                            "PRESSURE",
+                            "VOLUMEFACTOR",
+                            "COMPRESSIBILITY",
+                            "VISCOSITY",
+                            "VISCOSIBILITY",
+                            "PVTNUM",
+                        ]
+                    ]
+                )
+            else:
+                raise ValueError("PVTW not found in PVT dataframe")
+
+            if "DENSITY" in pvt_df["KEYWORD"].unique():
+                self.set_densities_from_df(
+                    pvt_df[pvt_df["KEYWORD"] == "DENSITY"][
+                        ["OILDENSITY", "GASDENSITY", "WATERDENSITY", "PVTNUM"]
+                    ]
+                )
+            else:
+                raise ValueError("DENSITY not found in PVT dataframe")
 
     # ------------------------------------------------------------------------
     def set_densities_from_df(self, eql_df):
