@@ -410,7 +410,7 @@ class ElementFluidDescription:
 
     # -----------------------------------------------------------------------------
     def calc_fluid_prop_vs_depth(self, no_nodes=20):
-        """ Calculates fluid properties vs. depth """
+        """Calculates fluid properties vs. depth"""
 
         # ---------------------------------------------------------------------
         # Calculate properties from REFERENCE depth to TOP reservoir
