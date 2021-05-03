@@ -25,7 +25,7 @@ def test_main():
 
 
 def init_from_ecl_df():
-    """ Reads pvt data and returns list of bopvt objects """
+    """Reads pvt data and returns list of bopvt objects"""
 
     pvt_txt = (TESTDATA / "pvt").read_text(encoding="utf-8", errors="ignore")
     pvt_df = ecl2df.pvt.df(pvt_txt)
@@ -72,7 +72,7 @@ def init_from_ecl_df():
 
 
 def test_pvto():
-    """ Test BoPVT oil properties calculations """
+    """Test BoPVT oil properties calculations"""
 
     pvt_models = init_from_ecl_df()
 
@@ -119,7 +119,7 @@ def test_pvto():
 
 
 def test_pvtg():
-    """ Test BoPVT gas properties calculations """
+    """Test BoPVT gas properties calculations"""
 
     pvt_models = init_from_ecl_df()
 
@@ -205,7 +205,7 @@ def test_pvtg():
 
 
 def test_pvtw():
-    """ Test BoPVT water properties calculations """
+    """Test BoPVT water properties calculations"""
 
     pvt_models = init_from_ecl_df()
 
