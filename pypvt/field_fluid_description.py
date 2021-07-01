@@ -226,7 +226,7 @@ class FieldFluidDescription:
 
     def get_df(self, keyword):
         """
-        retrun: pandas.df according to the requested keyword
+        return: pandas.df according to the requested keyword
         supported: equil, rsvd, rvvd, pbvd, pdvd, and the pvt related kws
         """
 
