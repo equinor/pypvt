@@ -351,12 +351,12 @@ class ElementFluidDescription:
         elif keyword == "RSVD":
             df = pd.DataFrame(columns=["KEYWORD", "EQLNUM", "RS", "Z"])
 
-            for (rs, depth) in zip(self.rsvd_rs, self.rsvd_depth):
+            for (rsvd, depth) in zip(self.rsvd_rs, self.rsvd_depth):
                 df = df.append(
                     {
                         "KEYWORD": "RSVD",
                         "EQLNUM": self.eqlnum,
-                        "RS": rs,
+                        "RS": rsvd,
                         "Z": depth,
                     },
                     ignore_index=True,
@@ -365,12 +365,12 @@ class ElementFluidDescription:
         elif keyword == "RVVD":
             df = pd.DataFrame(columns=["KEYWORD", "EQLNUM", "RV", "Z"])
 
-            for (rv, depth) in zip(self.rvvd_rv, self.rvvd_depth):
+            for (rvvd, depth) in zip(self.rvvd_rv, self.rvvd_depth):
                 df = df.append(
                     {
                         "KEYWORD": "RVVD",
                         "EQLNUM": self.eqlnum,
-                        "RV": rv,
+                        "RV": rvvd,
                         "Z": depth,
                     },
                     ignore_index=True,
@@ -379,12 +379,12 @@ class ElementFluidDescription:
         elif keyword == "PBVD":
             df = pd.DataFrame(columns=["KEYWORD", "EQLNUM", "PB", "Z"])
 
-            for (pb, depth) in zip(self.pbvd_pb, self.pbvd_depth):
+            for (pbvd, depth) in zip(self.pbvd_pb, self.pbvd_depth):
                 df = df.append(
                     {
                         "KEYWORD": "PBVD",
                         "EQLNUM": self.eqlnum,
-                        "PB": pb,
+                        "PB": pbvd,
                         "Z": depth,
                     },
                     ignore_index=True,
@@ -393,12 +393,12 @@ class ElementFluidDescription:
         elif keyword == "PDVD":
             df = pd.DataFrame(columns=["KEYWORD", "EQLNUM", "PD", "Z"])
 
-            for (dp, depth) in zip(self.pdvd_pd, self.pdvd_depth):
+            for (pdvd, depth) in zip(self.pdvd_pd, self.pdvd_depth):
                 df = df.append(
                     {
                         "KEYWORD": "PDVD",
                         "EQLNUM": self.eqlnum,
-                        "PD": dp,
+                        "PD": pdvd,
                         "Z": depth,
                     },
                     ignore_index=True,
