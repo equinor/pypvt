@@ -120,7 +120,7 @@ class ElementFluidDescription:
         self.pcgoc = eql_df[eql_df["EQLNUM"] == self.eqlnum]["PCGOC"].unique()[0]
         self.initrs = eql_df[eql_df["EQLNUM"] == self.eqlnum]["INITRS"].unique()[0]
         self.initrv = eql_df[eql_df["EQLNUM"] == self.eqlnum]["INITRV"].unique()[0]
-        self.accuracy = eql_df[eql_df["EQLNUM"] == self.eqlnum]["ACCURACY"].unique()[0]
+        # self.accuracy = eql_df[eql_df["EQLNUM"] == self.eqlnum]["ACCURACY"].unique()[0]
 
         self.ref_depth = eql_df[
             (eql_df["EQLNUM"] == self.eqlnum) & (eql_df["KEYWORD"] == "EQUIL")
@@ -327,7 +327,7 @@ class ElementFluidDescription:
                     "PRESSURE",
                     "INITRS",
                     "INITRV",
-                    "ACCURACY",
+                    # "ACCURACY",
                 ]
             )
 
@@ -343,7 +343,7 @@ class ElementFluidDescription:
                     "PRESSURE": self.ref_press,
                     "INITRS": self.initrs,
                     "INITRV": self.initrv,
-                    "ACCURACY": self.accuracy,
+                    # "ACCURACY": self.accuracy,
                 },
                 ignore_index=True,
             )
@@ -351,13 +351,13 @@ class ElementFluidDescription:
         elif keyword == "RSVD":
             df = pd.DataFrame(columns=["KEYWORD", "EQLNUM", "RS", "Z"])
 
-            for i in range(len(self.rsvd_rs)):
+            for (rsvd, depth) in zip(self.rsvd_rs, self.rsvd_depth):
                 df = df.append(
                     {
                         "KEYWORD": "RSVD",
                         "EQLNUM": self.eqlnum,
-                        "RS": self.rsvd_rs[i],
-                        "Z": self.rsvd_depth[i],
+                        "RS": rsvd,
+                        "Z": depth,
                     },
                     ignore_index=True,
                 )
@@ -365,13 +365,13 @@ class ElementFluidDescription:
         elif keyword == "RVVD":
             df = pd.DataFrame(columns=["KEYWORD", "EQLNUM", "RV", "Z"])
 
-            for i in range(len(self.rvvd_rv)):
+            for (rvvd, depth) in zip(self.rvvd_rv, self.rvvd_depth):
                 df = df.append(
                     {
                         "KEYWORD": "RVVD",
                         "EQLNUM": self.eqlnum,
-                        "RV": self.rvvd_rv[i],
-                        "Z": self.rvvd_depth[i],
+                        "RV": rvvd,
+                        "Z": depth,
                     },
                     ignore_index=True,
                 )
@@ -379,13 +379,13 @@ class ElementFluidDescription:
         elif keyword == "PBVD":
             df = pd.DataFrame(columns=["KEYWORD", "EQLNUM", "PB", "Z"])
 
-            for i in range(len(self.pbvd_pb)):
+            for (pbvd, depth) in zip(self.pbvd_pb, self.pbvd_depth):
                 df = df.append(
                     {
                         "KEYWORD": "PBVD",
                         "EQLNUM": self.eqlnum,
-                        "PB": self.pbvd_pb[i],
-                        "Z": self.pbvd_depth[i],
+                        "PB": pbvd,
+                        "Z": depth,
                     },
                     ignore_index=True,
                 )
@@ -393,13 +393,13 @@ class ElementFluidDescription:
         elif keyword == "PDVD":
             df = pd.DataFrame(columns=["KEYWORD", "EQLNUM", "PD", "Z"])
 
-            for i in range(len(self.pdvd_pd)):
+            for (pdvd, depth) in zip(self.pdvd_pd, self.pdvd_depth):
                 df = df.append(
                     {
                         "KEYWORD": "PDVD",
                         "EQLNUM": self.eqlnum,
-                        "PD": self.pdvd_pd[i],
-                        "Z": self.pdvd_depth[i],
+                        "PD": pdvd,
+                        "Z": depth,
                     },
                     ignore_index=True,
                 )

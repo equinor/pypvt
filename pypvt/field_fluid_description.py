@@ -78,20 +78,22 @@ class FieldFluidDescription:
                     fake_data += """
                     WATER
                     """
-                df = ecl2df.equil.df(
-                    fake_data + open(kw_dict[key], "r").read(),
-                    keywords="EQUIL",
-                    ntequl=ntequil,
-                )
+                with open(kw_dict[key], "r") as fileh:
+                    df = ecl2df.equil.df(
+                        fake_data + fileh.read(),
+                        keywords="EQUIL",
+                        ntequl=ntequil,
+                    )
+
                 assert "KEYWORD" in df, (
                     "Unable to read " + key + " kw from file: " + str(kw_dict[key])
                 )
                 kw_dict_from_file[key] = df
 
             elif key in ["RSVD", "RVVD", "PBVD", "PDVD"]:
-                df = ecl2df.equil.df(
-                    open(kw_dict[key], "r").read(), keywords=key, ntequl=ntequil
-                )
+                with open(kw_dict[key], "r") as fileh:
+                    df = ecl2df.equil.df(fileh.read(), keywords=key, ntequl=ntequil)
+
                 assert "KEYWORD" in df, (
                     "Unable to read " + key + " kw from file: " + str(kw_dict[key])
                 )
@@ -226,7 +228,7 @@ class FieldFluidDescription:
 
     def get_df(self, keyword):
         """
-        retrun: pandas.df according to the requested keyword
+        return: pandas.df according to the requested keyword
         supported: equil, rsvd, rvvd, pbvd, pdvd, and the pvt related kws
         """
 

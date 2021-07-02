@@ -155,6 +155,52 @@ def test_init_pdvd_from_df():
     assert np.isclose(description.pdvd_pd[0], 60.0)
 
 
+def test_get_df():
+
+    txt = (TESTDATA / "DATA").read_text(encoding="utf-8", errors="ignore")
+
+    txt += (TESTDATA / "pdvd").read_text(encoding="utf-8", errors="ignore")
+    txt += (TESTDATA / "pbvd").read_text(encoding="utf-8", errors="ignore")
+    txt += (TESTDATA / "rsvd").read_text(encoding="utf-8", errors="ignore")
+    txt += (TESTDATA / "rvvd").read_text(encoding="utf-8", errors="ignore")
+
+    df = ecl2df.equil.df(txt, keywords="PDVD")
+    description = ElementFluidDescription(1, 1)
+    description.init_pdvd_from_df(df)
+    df_out = description.get_df("PDVD")
+
+    assert len(df_out) == 2
+    assert df["Z"][0] == df_out["Z"][0]
+    assert df["PD"][1] == df_out["PD"][1]
+
+    df = ecl2df.equil.df(txt, keywords="PBVD")
+    description = ElementFluidDescription(1, 1)
+    description.init_pbvd_from_df(df)
+    df_out = description.get_df("PBVD")
+
+    assert len(df_out) == 2
+    assert df["Z"][0] == df_out["Z"][0]
+    assert df["PB"][1] == df_out["PB"][1]
+
+    df = ecl2df.equil.df(txt, keywords="RSVD")
+    description = ElementFluidDescription(1, 1)
+    description.init_rsvd_from_df(df)
+    df_out = description.get_df("RSVD")
+
+    assert len(df_out) == 2
+    assert df["Z"][0] == df_out["Z"][0]
+    assert df["RS"][1] == df_out["RS"][1]
+
+    df = ecl2df.equil.df(txt, keywords="RVVD")
+    description = ElementFluidDescription(1, 1)
+    description.init_rvvd_from_df(df)
+    df_out = description.get_df("RVVD")
+
+    assert len(df_out) == 2
+    assert df["Z"][0] == df_out["Z"][0]
+    assert df["RV"][1] == df_out["RV"][1]
+
+
 if __name__ == "__main__":
     test_main()
     test_init_from_ecl_df()
@@ -163,3 +209,4 @@ if __name__ == "__main__":
     test_init_rvvd_from_df()
     test_init_pbvd_from_df()
     test_init_pdvd_from_df()
+    test_get_df()
