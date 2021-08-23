@@ -6,7 +6,9 @@ from setuptools import setup
 
 
 # Read the contents of README.md, for PyPI
-with open(pathlib.Path(__file__).resolve().parent / "README.md") as f_handle:
+with open(
+    pathlib.Path(__file__).resolve().parent / "README.md", encoding="utf-8"
+) as f_handle:
     LONG_DESCRIPTION = f_handle.read()
 
 REQUIREMENTS = ["ecl2df", "pandas", "scipy", "numpy", "matplotlib"]
