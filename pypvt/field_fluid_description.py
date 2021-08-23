@@ -78,7 +78,7 @@ class FieldFluidDescription:
                     fake_data += """
                     WATER
                     """
-                with open(kw_dict[key], "r") as fileh:
+                with open(kw_dict[key], "r", encoding="utf-8") as fileh:
                     df = ecl2df.equil.df(
                         fake_data + fileh.read(),
                         keywords="EQUIL",
@@ -91,7 +91,7 @@ class FieldFluidDescription:
                 kw_dict_from_file[key] = df
 
             elif key in ["RSVD", "RVVD", "PBVD", "PDVD"]:
-                with open(kw_dict[key], "r") as fileh:
+                with open(kw_dict[key], "r", encoding="utf-8") as fileh:
                     df = ecl2df.equil.df(fileh.read(), keywords=key, ntequl=ntequil)
 
                 assert "KEYWORD" in df, (
