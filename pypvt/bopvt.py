@@ -10,6 +10,7 @@ from scipy.interpolate import interp1d
 # pylint: disable=too-many-branches
 # pylint: disable=too-many-statements
 # pylint: disable=too-many-public-methods
+# pylint: disable=consider-using-f-string
 
 # =============================================================================
 

@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 # pylint: disable=too-many-locals
 # pylint: disable=expression-not-assigned
 # pylint: disable=too-many-arguments
-
+# pylint: disable=consider-using-f-string
 
 class ElementFluidDescription:
 
