@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 # pylint: disable=too-many-arguments
 # pylint: disable=consider-using-f-string
 
+
 class ElementFluidDescription:
 
     """A representation of black oil pvt and fluid contacts
