@@ -219,7 +219,7 @@ def test_pvtw():
     bw_ref = 1.01712
     cw = 0.42190e-4
     x = cw * (p - p_ref)
-    bw = bw_ref / (1 + x + 0.5 * x ** 2)
+    bw = bw_ref / (1 + x + 0.5 * x**2)
     assert np.isclose(pvt_model.calc_bw(p), bw)
 
     # Water density
